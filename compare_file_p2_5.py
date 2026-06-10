@@ -71,7 +71,7 @@ def normalize_fac(f):
 TASKS = [
     # 任务1：终端信息对比
     {
-        "name": "终端基础信息对比",  # 任务名称，输出时显示
+        "name": "配网馈线表实时库和达梦对比",  # 任务名称，输出时显示
         "file1": "old_terminal.xls",  # 第一个文件路径
         "file2": "new_terminal.xls",  # 第二个文件路径
         "col_map": {  # 列映射：{旧表列名: 新表列名}
