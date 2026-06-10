@@ -1,217 +1,243 @@
 # -*- coding: utf-8 -*-
 import pandas as pd
 import sys
-import datetime
+import os
+import traceback
 
 
-# ========== 👇 通用转换函数（所有任务可复用） ==========
-def trim_str(s):
-    """去掉前后空格，处理空值"""
+# ========== 通用转换&清洗函数 ==========
+def full_clean(s):
+    """
+    深度清洗：去除所有空格、制表符、全角空格、空白字符，统一为纯字符串
+    解决肉眼一致、隐形字符导致的误判
+    """
     if pd.isna(s):
-        return None
-    return str(s).strip()
-
-
-def parse_date(d):
-    """统一日期格式，支持 Excel 日期数字和字符串"""
-    if pd.isna(d):
-        return None
-    return pd.to_datetime(d, errors='coerce').date()
-
-
-def parse_percent(p):
-    """统一百分比："98.5%" 和 0.985 都转成 98.5"""
-    if pd.isna(p):
-        return None
-    s = str(p).strip()
-    if s.endswith('%'):
-        try:
-            return float(s[:-1])
-        except:
-            return None
-    try:
-        return float(s) * 100
-    except:
-        return None
-
-
-def normalize_fac(f):
-    """厂家名称归一化"""
-    if pd.isna(f):
-        return None
-    s = str(f).strip()
-    if "南瑞" in s:
-        return "南瑞"
-    if "许继" in s:
-        return "许继"
-    if "四方" in s:
-        return "四方"
+        return ""
+    s = str(s)
+    # 常规半角空格、制表符、换行
+    s = s.replace(" ", "").replace("\t", "").replace("\n", "").replace("\r", "")
+    # 全角空格
+    s = s.replace("　", "")
     return s
 
 
-# ========== 👇 批量任务配置区（只需要改这里） ==========
-# 每个 {} 代表一对对比任务，复制粘贴即可添加新任务
+def trim_str_length(s, max_length=19):
+    if pd.isna(s):
+        return ""
+    result = str(s).strip()
+    if max_length is not None:
+        result = result[:max_length]
+    return result
+
+
+def convert_station_type(s):
+    """开关站类型 中文/数字 统一映射"""
+    if pd.isna(s):
+        return ""
+    s = full_clean(s)
+    if s in ("开关站",):
+        return "0"
+    elif s in ("箱式变电站",):
+        return "1"
+    if s == "0.0" or s == "0":
+        return "0"
+    elif s == "1.0" or s == "1":
+        return "1"
+    return s
+
+
+# ========== 批量任务配置区 ==========
+# ignore_only_row: True=忽略独有行，只对比共同数据；False=严格校验行数一致
 TASKS = [
-    # 任务1：终端信息对比
+    # 任务1：配网馈线表实时库和达梦对比
     {
-        "name": "终端基础信息对比",  # 任务名称，输出时显示
-        "file1": "old_terminal.xlsx",  # 第一个文件路径（支持xls/xlsx）
-        "file2": "new_terminal.xlsx",  # 第二个文件路径
-        "col_map": {  # 列映射：{旧表列名: 新表列名}
-            "终端ID": "termid",
-            "终端厂家": "term_fac",
-            "安装日期": "install_date",
-            "在线率": "online_rate",
-        },
-        "transform_funcs": {  # 该任务专属转换函数
-            "终端厂家": normalize_fac,
-            "安装日期": parse_date,
-            "在线率": parse_percent,
-        },
-        "key_col": "终端ID"  # 主键列
-    },
-    # 任务2：厂家资质对比
-    {
-        "name": "厂家资质信息对比",
-        "file1": "old_factory.xlsx",
-        "file2": "new_factory.xlsx",
+        "name": "配网馈线表实时库和达梦对比",
+        "file1": "C:\\Users\\13303\\Desktop\\kx610.xls",
+        "file2": "C:\\Users\\13303\\Desktop\\kx610_dm.xls",
         "col_map": {
-            "厂家编号": "factory_id",
-            "厂家名称": "factory_name",
-            "资质等级": "level",
-            "有效期": "valid_date",
+            "馈线ID号": "ID",
+            "馈线名称": "NAME",
+            # "图形名": "GRAPH_NAME",
         },
         "transform_funcs": {
-            "厂家名称": trim_str,
-            "资质等级": trim_str,
-            "有效期": parse_date,
+            "馈线ID号": lambda x: trim_str_length(x, 19),
+            "馈线名称": full_clean,
+            # "图形名": full_clean,
         },
-        "key_col": "厂家编号"
+        "key_col": "馈线ID号",
+        "ignore_only_row": True   # 忽略独有行
     },
-    # 任务3：设备台账对比（继续往下加即可）
-    # {
-    #     "name": "设备台账对比",
-    #     "file1": "old_device.xlsx",
-    #     "file2": "new_device.xlsx",
-    #     "col_map": {
-    #         "设备编号": "dev_id",
-    #         "设备名称": "dev_name",
-    #         "安装位置": "location",
-    #     },
-    #     "transform_funcs": {
-    #         "设备名称": trim_str,
-    #         "安装位置": trim_str,
-    #     },
-    #     "key_col": "设备编号"
-    # },
+    # 任务2：开关站实时库商用库对比
+    {
+        "name": "开关站实时库商用库对比",
+        "file1": "C:\\Users\\13303\\Desktop\\kgz610.xls",
+        "file2": "C:\\Users\\13303\\Desktop\\kgz610_dm.xls",
+        "col_map": {
+            "开关站ID号": "ID",
+            "开关站名称": "NAME",
+            "所属馈线": "feeder_name",
+            # "开关站类型": "COMBINED_STATE",
+        },
+        "transform_funcs": {
+            "开关站ID号": lambda x: trim_str_length(x, 19),
+            "开关站名称": full_clean,
+            "所属馈线": full_clean,
+            # "开关站类型": convert_station_type,
+        },
+        "key_col": "开关站ID号",
+        "ignore_only_row": True   # 忽略独有行
+    },
 ]
 
 
-# ========== 👆 配置结束，下面的不用改 ==========
-
-
-def read_excel(file_path, col_names, transform_funcs):
-    """读取 Excel 文件，返回 {主键: {列名: 转换后的值}}"""
-    try:
-        # 自动识别 xls/xlsx，pandas 3.11 完美支持
-        df = pd.read_excel(file_path)
-        df = df[col_names].copy()
-
-        # 应用转换函数
-        for col, func in transform_funcs.items():
-            df[col] = df[col].apply(func)
-
-        # 按主键索引
-        df = df.set_index(KEY_COL, drop=False)
-        return df
-    except Exception as e:
-        print(f"错误：读取文件 {file_path} 失败：{str(e)}")
+# ========== 文件读取 ==========
+def load_excel(file_path):
+    if not os.path.exists(file_path):
+        print(f"错误：文件不存在 {file_path}")
         return None
 
+    suffix = os.path.splitext(file_path)[1].lower()
+    try:
+        if suffix == ".xls":
+            df = pd.read_excel(file_path, engine="xlrd")
+        elif suffix == ".xlsx":
+            df = pd.read_excel(file_path, engine="openpyxl")
+        else:
+            df = pd.read_excel(file_path)
 
+        df.columns = [str(c).strip() for c in df.columns]
+        print(f"【调试】{os.path.basename(file_path)} 实际表头：{list(df.columns)}")
+        return df
+    except Exception as e1:
+        # 兼容伪Excel(TSV)，多编码+制表符分隔
+        try:
+            enc_list = ["utf-8", "gb18030", "gbk"]
+            for enc in enc_list:
+                try:
+                    df = pd.read_csv(file_path, encoding=enc, sep="\t")
+                    df.columns = [str(c).strip() for c in df.columns]
+                    print(f"【调试】使用编码 {enc} 读取成功")
+                    print(f"【调试】{os.path.basename(file_path)} 实际表头：{list(df.columns)}")
+                    return df
+                except:
+                    continue
+            return None
+        except Exception as e2:
+            print(f"读取失败，详细错误：")
+            traceback.print_exc()
+            return None
+
+
+# ========== 单任务对比逻辑 ==========
 def compare_single_task(task):
-    """对比单个任务"""
     print("\n" + "=" * 70)
     print(f"【任务：{task['name']}】")
     print(f"对比文件：{task['file1']} vs {task['file2']}")
     print("=" * 70)
 
-    # 读取两个文件
-    df1 = pd.read_excel(task["file1"])
-    df2 = pd.read_excel(task["file2"])
+    try:
+        df1 = load_excel(task["file1"])
+        df2 = load_excel(task["file2"])
+        if df1 is None or df2 is None:
+            return False
 
-    # 重命名列，统一
-    df1 = df1[list(task["col_map"].keys())].rename(columns={v: k for k, v in task["col_map"].items()})
-    df2 = df2[list(task["col_map"].values())].rename(columns={v: k for k, v in task["col_map"].items()})
+        # 校验列是否存在
+        map_keys = list(task["col_map"].keys())
+        map_vals = list(task["col_map"].values())
+        missing1 = [c for c in map_keys if c not in df1.columns]
+        missing2 = [c for c in map_vals if c not in df2.columns]
+        if missing1 or missing2:
+            if missing1:
+                print(f"❌ 文件1缺失列：{missing1}")
+            if missing2:
+                print(f"❌ 文件2缺失列：{missing2}")
+            return False
 
-    # 应用转换函数
-    for col, func in task["transform_funcs"].items():
-        df1[col] = df1[col].apply(func)
-        df2[col] = df2[col].apply(func)
+        # 筛选列 + 统一列名（全部统一为文件1的列名，这样后面的transform才能找到列）
+        df1 = df1[map_keys]  # 文件1的列名不变！
+        rev_map = {v: k for k, v in task["col_map"].items()}
+        df2 = df2[map_vals].rename(columns=rev_map)  # 只改文件2的列名，改成文件1的
 
-    # 按主键排序
-    key_col = task["key_col"]
-    df1 = df1.set_index(key_col).sort_index()
-    df2 = df2.set_index(key_col).sort_index()
+        # 应用清洗/转换函数
+        for col, func in task["transform_funcs"].items():
+            df1[col] = df1[col].apply(func)
+            df2[col] = df2[col].apply(func)
 
-    # 找出只在一个文件的行
-    only1 = sorted(set(df1.index) - set(df2.index))
-    only2 = sorted(set(df2.index) - set(df1.index))
+        key_col = task["key_col"]
+        df1 = df1.set_index(key_col).sort_index()
+        df2 = df2.set_index(key_col).sort_index()
 
-    if len(only1) > 0:
-        print(f"\n❌ 仅在第一个文件的行（主键）：")
-        for key in only1[:10]:
-            print(f"  {key}")
-        if len(only1) > 10:
-            print(f"  ... 共 {len(only1)} 条")
+        # 独有行
+        only1 = sorted(set(df1.index) - set(df2.index))
+        only2 = sorted(set(df2.index) - set(df1.index))
 
-    if len(only2) > 0:
-        print(f"\n❌ 仅在第二个文件的行（主键）：")
-        for key in only2[:10]:
-            print(f"  {key}")
-        if len(only2) > 10:
-            print(f"  ... 共 {len(only2)} 条")
+        if len(only1) > 0:
+            print(f"\n❌ 仅在第一个文件的主键({len(only1)}条)：")
+            for k in only1[:10]:
+                print(f"  {k}")
+            if len(only1) > 10:
+                print(f"  ... 省略剩余 {len(only1)-10} 条")
 
-    # 对比单元格差异
-    common = df1.index.intersection(df2.index)
-    diff = df1.loc[common].compare(df2.loc[common], keep_shape=True, keep_equal=True)
-    diff_count = diff.notna().any(axis=1).sum()
+        if len(only2) > 0:
+            print(f"\n❌ 仅在第二个文件的主键({len(only2)}条)：")
+            for k in only2[:10]:
+                print(f"  {k}")
+            if len(only2) > 10:
+                print(f"  ... 省略剩余 {len(only2)-10} 条")
 
-    if diff_count == 0:
-        print(f"\n✅ 所有要对比的列，处理后完全一致！")
-    else:
-        print(f"\n✅ 共同行的单元格差异（处理后）：")
-        print("-" * 70)
-        print(diff.dropna(how='all'))
+        # 共同行对比
+        common_idx = df1.index.intersection(df2.index)
+        df_common1 = df1.loc[common_idx]
+        df_common2 = df2.loc[common_idx]
 
-    print(f"\n统计：")
-    print(f"  第一个文件总行数：{len(df1)}")
-    print(f"  第二个文件总行数：{len(df2)}")
-    print(f"  共同行数：{len(common)}")
-    print(f"  差异单元格数：{diff_count}")
+        diff_df = df_common1.compare(df_common2, keep_shape=True, keep_equal=True)
+        diff_count = diff_df.notna().any(axis=1).sum()
 
-    return diff_count == 0 and len(only1) == 0 and len(only2) == 0
+        if diff_count == 0:
+            print(f"\n✅ 共同行【所有字段完全一致】")
+        else:
+            print(f"\n⚠️ 共同行存在 {diff_count} 处真实数据差异：")
+            print("-" * 70)
+            print(diff_df.dropna(how='all'))
+
+        # 统计信息
+        print(f"\n【统计】")
+        print(f"  文件1总行数：{len(df1)}")
+        print(f"  文件2总行数：{len(df2)}")
+        print(f"  共同行数：{len(common_idx)}")
+        print(f"  独有行数：文件1:{len(only1)} | 文件2:{len(only2)}")
+        print(f"  数据差异行数：{diff_count}")
+
+        # 判定任务成功
+        ignore_only = task.get("ignore_only_row", False)
+        if ignore_only:
+            # 只看共同行是否无差异
+            return diff_count == 0
+        else:
+            # 严格模式：无独有行 + 无差异
+            return (len(only1) == 0 and len(only2) == 0 and diff_count == 0)
+
+    except Exception as e:
+        print(f"❌ 任务执行异常：{str(e)}")
+        traceback.print_exc()
+        return False
 
 
 def main():
     print("=" * 70)
-    print("批量 Excel 对比工具（Python 3.11 专属版，支持xlsx）")
+    print("批量Excel对比工具（深度清洗+区分独有行）")
     print(f"共加载 {len(TASKS)} 个对比任务")
     print("=" * 70)
 
     success_count = 0
-    for i, task in enumerate(TASKS):
-        print(f"\n[{i + 1}/{len(TASKS)}] 正在执行...")
-        try:
-            is_ok = compare_single_task(task)
-            if is_ok:
-                success_count += 1
-        except Exception as e:
-            print(f"任务 {task['name']} 执行失败：{str(e)}")
+    for idx, task in enumerate(TASKS):
+        print(f"\n[{idx+1}/{len(TASKS)}] 开始执行：{task['name']}")
+        ok = compare_single_task(task)
+        if ok:
+            success_count += 1
 
     print("\n" + "=" * 70)
-    print("全部任务执行完成！")
-    print(f"成功：{success_count}/{len(TASKS)}")
+    print(f"执行汇总：成功 {success_count} / 总计 {len(TASKS)}")
     print("=" * 70)
 
 
