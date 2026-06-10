@@ -16,6 +16,22 @@ def trim_str(s):
     return unicode(s).strip()
 
 
+def trim_str_length(s, max_length=19):
+    """
+    去掉前后空格，处理空值，可选截取前 max_length 个字符
+    :param s: 输入字符串
+    :param max_length: 截取的长度，不传或为 None 则不截取
+    :return: 处理后的字符串或 None
+    """
+    if s is None or s == "":
+        return None
+    # 先转为字符串并去空格
+    result = str(s).strip()
+    # 如果指定了长度，截取前 max_length 个字符
+    if max_length is not None:
+        result = result[:max_length]
+    return result
+
 def parse_date(d):
     """统一日期格式，支持 Excel 日期数字和字符串"""
     if d is None or d == "":
@@ -69,41 +85,40 @@ def normalize_fac(f):
 # ========== 👇 批量任务配置区（只需要改这里） ==========
 # 每个 {} 代表一对对比任务，复制粘贴即可添加新任务
 TASKS = [
-    # 任务1：终端信息对比
+    # 任务1：馈线对比
     {
         "name": "配网馈线表实时库和达梦对比",  # 任务名称，输出时显示
-        "file1": "old_terminal.xls",  # 第一个文件路径
-        "file2": "new_terminal.xls",  # 第二个文件路径
+        "file1": "C:\\Users\\13303\\Desktop\\kx610.xls",  # 第一个文件路径
+        "file2": "C:\\Users\\13303\\Desktop\\kx610_dm.xls",  # 第二个文件路径
         "col_map": {  # 列映射：{旧表列名: 新表列名}
-            "终端ID": "termid",
-            "终端厂家": "term_fac",
-            "安装日期": "install_date",
-            "在线率": "online_rate",
+            "馈线ID号": "ID",
+            "馈线名称": "NAME",
+            "图形名": "GRAPH_NAME",
         },
         "transform_funcs": {  # 该任务专属转换函数
-            "终端厂家": normalize_fac,
-            "安装日期": parse_date,
-            "在线率": parse_percent,
+            "馈线ID号": trim_str_length,
+            "馈线名称": trim_str,
         },
-        "key_col": "终端ID"  # 主键列
+        "key_col": "馈线ID号"  # 主键列
     },
-    # 任务2：厂家资质对比
+    # 任务2：开关站对比
     {
-        "name": "厂家资质信息对比",
-        "file1": "old_factory.xls",
-        "file2": "new_factory.xls",
+        "name": "开关站实时库商用库对比",
+        "file1": "C:\\Users\\13303\\Desktop\\kgz610.xls",
+        "file2": "C:\\Users\\13303\\Desktop\\kgz610_dm.xls",
         "col_map": {
-            "厂家编号": "factory_id",
-            "厂家名称": "factory_name",
-            "资质等级": "level",
-            "有效期": "valid_date",
+            "开关站ID号": "ID",
+            "开关站名称": "NAME",
+            "所属馈线": "feeder_name",
+            "开关站类型": "COMBINED_STATE",
         },
         "transform_funcs": {
-            "厂家名称": trim_str,
-            "资质等级": trim_str,
-            "有效期": parse_date,
+            "开关站ID号": trim_str_length,
+            "开关站名称": trim_str,
+            "所属馈线": trim_str,
+            # "开关站类型": parse_date,
         },
-        "key_col": "厂家编号"
+        "key_col": "开关站ID号"
     },
     # 任务3：设备台账对比（继续往下加即可）
     # {
@@ -167,14 +182,10 @@ def read_excel(file_path, col_names, transform_funcs):
 
 def compare_single_task(task):
     """对比单个任务"""
-    print
-    ("\n" + "=" * 70)
-    print
-    ("【任务：%s】" % task["name"])
-    print
-    ("对比文件：%s vs %s" % (task["file1"], task["file2"]))
-    print
-    ("=" * 70)
+    print("\n" + "=" * 70)
+    print("【任务：%s】" % task["name"])
+    print("对比文件：%s vs %s" % (task["file1"], task["file2"]))
+    print("=" * 70)
 
     # 读取两个文件
     df1 = read_excel(task["file1"], task["col_map"].keys(), task["transform_funcs"])
@@ -231,14 +242,10 @@ def compare_single_task(task):
     # 对比单元格差异
     common_keys = sorted(keys1 & keys2)
     diff_count = 0
-    print
-    ("\n✅ 共同行的单元格差异（处理后）：")
-    print
-    ("-" * 70)
-    print
-    ("%-15s %-15s %-20s %-20s" % ("主键", "列名", "第一个文件", "第二个文件"))
-    print
-    ("-" * 70)
+    print("\n✅ 共同行的单元格差异（处理后）：")
+    print("-" * 70)
+    print("%-15s %-15s %-20s %-20s" % ("主键", "列名", "第一个文件", "第二个文件"))
+    print("-" * 70)
 
     for key in common_keys:
         row1 = df1_keyed[key]
