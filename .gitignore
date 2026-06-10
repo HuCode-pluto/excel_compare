@@ -1,0 +1,26 @@
+# PyCharm IDE files
+.idea/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+
+# Virtual environment
+venv/
+env/
+.env/
+.venv/
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
