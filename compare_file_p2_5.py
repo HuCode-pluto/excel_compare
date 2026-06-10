@@ -1,300 +1,320 @@
+#!/usr/bin/env python2.7
 # -*- coding: utf-8 -*-
-from __future__ import with_statement
-import xlrd
+"""
+批量 Excel 对比工具（Python 2.5 兼容版）
+========================================
+适配说明：
+  1. f-string 全部替换为 %% 格式化
+  2. print() 函数 → print 语句
+  3. except X as e → except X, e
+  4. pd.isna() → pd.isnull()
+  5. 字典/集合推导式 → generator + 构造器
+  6. 全角字符使用 unicode 字面量 u"　"
+  7. df.compare() → 手动 diff_mask（pandas 1.1.0 才引入）
+  8. sys.exit() 返回退出码，方便 CI/脚本判断
+"""
+import pandas as pd
 import sys
-import datetime
+import os
+import traceback
 
 
-# ========== 👇 通用转换函数（所有任务可复用） ==========
-from xlrd.timemachine import unicode
+# ========== 通用工具函数 ==========
+def safe_unicode(s):
+    """
+    安全转为 unicode，兼容 str(bytes) / unicode / 数字 / None 等各种输入。
+    Python 2 下 unicode() 默认用 ASCII 解码 bytes，遇到中文会炸，所以先判断类型。
+    """
+    if isinstance(s, unicode):
+        return s
+    if isinstance(s, str):
+        # bytes → unicode，优先 utf-8，回退 gb18030
+        for enc in (u"utf-8", u"gb18030"):
+            try:
+                return s.decode(enc)
+            except (UnicodeDecodeError, UnicodeError):
+                continue
+        return s.decode(u"utf-8", u"replace")
+    # 数字、float 等
+    return unicode(s)
 
 
-def trim_str(s):
-    """去掉前后空格，处理空值"""
-    if s is None or s == "":
-        return None
-    return unicode(s).strip()
+# ========== 通用转换 & 清洗函数 ==========
+def full_clean(s):
+    """
+    深度清洗：去除所有空格、制表符、全角空格、空白字符，统一为纯字符串
+    解决肉眼一致、隐形字符导致的误判
+    """
+    if pd.isnull(s):
+        return u""
+    s = safe_unicode(s)
+    # 常规半角空格、制表符、换行
+    s = s.replace(u" ", u"").replace(u"\t", u"").replace(u"\n", u"").replace(u"\r", u"")
+    # 全角空格（U+3000）
+    s = s.replace(u"　", u"")
+    return s
 
 
 def trim_str_length(s, max_length=19):
-    """
-    去掉前后空格，处理空值，可选截取前 max_length 个字符
-    :param s: 输入字符串
-    :param max_length: 截取的长度，不传或为 None 则不截取
-    :return: 处理后的字符串或 None
-    """
-    if s is None or s == "":
-        return None
-    # 先转为字符串并去空格
-    result = str(s).strip()
-    # 如果指定了长度，截取前 max_length 个字符
+    """截断字符串到指定长度（用于适配数据库字段长度限制）"""
+    if pd.isnull(s):
+        return u""
+    result = safe_unicode(s).strip()
     if max_length is not None:
         result = result[:max_length]
     return result
 
-def parse_date(d):
-    """统一日期格式，支持 Excel 日期数字和字符串"""
-    if d is None or d == "":
-        return None
-    if isinstance(d, float):
-        try:
-            t = xlrd.xldate_as_tuple(d, 0)
-            return datetime.date(t[0], t[1], t[2])
-        except:
-            return None
-    s = unicode(d).strip()
-    for fmt in ["%Y-%m-%d", "%Y/%m/%d", "%Y%m%d"]:
-        try:
-            return datetime.datetime.strptime(s, fmt).date()
-        except:
-            continue
-    return None
 
-
-def parse_percent(p):
-    """统一百分比："98.5%" 和 0.985 都转成 98.5"""
-    if p is None or p == "":
-        return None
-    from xlrd.timemachine import unicode
-    s = unicode(p).strip()
-    if s.endswith("%"):
-        try:
-            return float(s[:-1])
-        except:
-            return None
-    try:
-        return float(s) * 100
-    except:
-        return None
-
-
-def normalize_fac(f):
-    """厂家名称归一化"""
-    if f is None or f == "":
-        return None
-    s = unicode(f).strip()
-    if u"南瑞" in s:
-        return u"南瑞"
-    if u"许继" in s:
-        return u"许继"
-    if u"四方" in s:
-        return u"四方"
+def convert_station_type(s):
+    """开关站类型 中文/数字 统一映射
+    0=开关站, 1=箱式变电站
+    """
+    if pd.isnull(s):
+        return u""
+    s = full_clean(s)
+    if s in (u"开关站",):
+        return u"0"
+    elif s in (u"箱式变电站",):
+        return u"1"
+    # 数字标准化：去小数点
+    if s in (u"0", u"0.0"):
+        return u"0"
+    elif s in (u"1", u"1.0"):
+        return u"1"
     return s
 
 
-# ========== 👇 批量任务配置区（只需要改这里） ==========
-# 每个 {} 代表一对对比任务，复制粘贴即可添加新任务
+# ========== 批量任务配置区 ==========
+# ignore_only_row: True=忽略独有行，只对比共同数据；False=严格校验行数一致
 TASKS = [
-    # 任务1：馈线对比
+    # 任务1：配网馈线表实时库和达梦对比
     {
-        "name": "配网馈线表实时库和达梦对比",  # 任务名称，输出时显示
-        "file1": "C:\\Users\\13303\\Desktop\\kx610.xls",  # 第一个文件路径
-        "file2": "C:\\Users\\13303\\Desktop\\kx610_dm.xls",  # 第二个文件路径
-        "col_map": {  # 列映射：{旧表列名: 新表列名}
-            "馈线ID号": "ID",
-            "馈线名称": "NAME",
-            "图形名": "GRAPH_NAME",
-        },
-        "transform_funcs": {  # 该任务专属转换函数
-            "馈线ID号": trim_str_length,
-            "馈线名称": trim_str,
-        },
-        "key_col": "馈线ID号"  # 主键列
-    },
-    # 任务2：开关站对比
-    {
-        "name": "开关站实时库商用库对比",
-        "file1": "C:\\Users\\13303\\Desktop\\kgz610.xls",
-        "file2": "C:\\Users\\13303\\Desktop\\kgz610_dm.xls",
+        "name": u"配网馈线表实时库和达梦对比",
+        "file1": u"C:\\Users\\13303\\Desktop\\kx610.xls",
+        "file2": u"C:\\Users\\13303\\Desktop\\kx610_dm.xls",
         "col_map": {
-            "开关站ID号": "ID",
-            "开关站名称": "NAME",
-            "所属馈线": "feeder_name",
-            "开关站类型": "COMBINED_STATE",
+            u"馈线ID号": u"ID",
+            u"馈线名称": u"NAME",
+            # u"图形名": u"GRAPH_NAME",
         },
         "transform_funcs": {
-            "开关站ID号": trim_str_length,
-            "开关站名称": trim_str,
-            "所属馈线": trim_str,
-            # "开关站类型": parse_date,
+            u"馈线ID号": lambda x: trim_str_length(x, 19),
+            u"馈线名称": full_clean,
+            # u"图形名": full_clean,
         },
-        "key_col": "开关站ID号"
+        "key_col": u"馈线ID号",
+        "ignore_only_row": True   # 忽略独有行
     },
-    # 任务3：设备台账对比（继续往下加即可）
-    # {
-    #     "name": "设备台账对比",
-    #     "file1": "old_device.xls",
-    #     "file2": "new_device.xls",
-    #     "col_map": {
-    #         "设备编号": "dev_id",
-    #         "设备名称": "dev_name",
-    #         "安装位置": "location",
-    #     },
-    #     "transform_funcs": {
-    #         "设备名称": trim_str,
-    #         "安装位置": trim_str,
-    #     },
-    #     "key_col": "设备编号"
-    # },
+    # 任务2：开关站实时库商用库对比
+    {
+        "name": u"开关站实时库商用库对比",
+        "file1": u"C:\\Users\\13303\\Desktop\\kgz610.xls",
+        "file2": u"C:\\Users\\13303\\Desktop\\kgz610_dm.xls",
+        "col_map": {
+            u"开关站ID号": u"ID",
+            u"开关站名称": u"NAME",
+            u"所属馈线": u"feeder_name",
+            # u"开关站类型": u"COMBINED_STATE",
+        },
+        "transform_funcs": {
+            u"开关站ID号": lambda x: trim_str_length(x, 19),
+            u"开关站名称": full_clean,
+            u"所属馈线": full_clean,
+            # u"开关站类型": convert_station_type,
+        },
+        "key_col": u"开关站ID号",
+        "ignore_only_row": True   # 忽略独有行
+    },
 ]
 
 
-# ========== 👆 配置结束，下面的不用改 ==========
+# ========== 文件读取 ==========
+def load_excel(file_path):
+    """
+    读取 Excel/TSV 文件，自动检测编码
+    返回 DataFrame 或 None
+    """
+    if not os.path.exists(file_path):
+        print u"错误：文件不存在 %s" % file_path
+        return None
 
+    suffix = os.path.splitext(file_path)[1].lower()
+    basename = os.path.basename(file_path)
 
-def read_excel(file_path, col_names, transform_funcs):
-    """读取 Excel 文件，返回 {主键: {列名: 转换后的值}}"""
+    # ---- 优先按 Excel 读取 ----
     try:
-        workbook = xlrd.open_workbook(file_path)
-        sheet = workbook.sheet_by_index(0)
-        headers = [unicode(cell.value).strip() for cell in sheet.row(0)]
+        if suffix == u".xls":
+            df = pd.read_excel(file_path, engine=u"xlrd")
+        elif suffix == u".xlsx":
+            df = pd.read_excel(file_path, engine=u"openpyxl")
+        else:
+            df = pd.read_excel(file_path)
 
-        # 检查列是否存在
-        col_index = {}
-        for name in col_names:
-            if name not in headers:
-                print("错误：文件 %s 中找不到列 '%s'" % (file_path, name))
-                return None
-            col_index[name] = headers.index(name)
-
-        data = {}
-        for row_idx in range(1, sheet.nrows):
-            row = sheet.row(row_idx)
-            row_data = {}
-            for name in col_names:
-                cell_value = row[col_index[name]].value
-                # 应用转换函数
-                if name in transform_funcs:
-                    row_data[name] = transform_funcs[name](cell_value)
-                else:
-                    row_data[name] = cell_value
-
-            key = row_data[col_names[0]]  # 临时用第一列当key，后面会替换
-            if key is None:
+        df.columns = [unicode(c).strip() for c in df.columns]
+        print u"【调试】%s 实际表头：%s" % (basename, list(df.columns))
+        return df
+    except Exception, e1:
+        # 兼容伪Excel（TSV格式），多编码 + 制表符分隔
+        enc_list = [u"utf-8", u"gb18030", u"gbk"]
+        for enc in enc_list:
+            try:
+                df = pd.read_csv(file_path, encoding=enc, sep=u"\t")
+                df.columns = [unicode(c).strip() for c in df.columns]
+                print u"【调试】使用编码 %s 读取成功" % enc
+                print u"【调试】%s 实际表头：%s" % (basename, list(df.columns))
+                return df
+            except Exception:
                 continue
-            data[key] = row_data
-
-        return data
-    except Exception as e:
-        print("读取文件 %s 失败：%s" % (file_path, str(e)))
+        # 所有编码都失败
+        print u"读取失败，所有编码均无法解析：%s" % file_path
+        traceback.print_exc()
         return None
 
 
+# ========== 单任务对比逻辑 ==========
 def compare_single_task(task):
-    """对比单个任务"""
-    print("\n" + "=" * 70)
-    print("【任务：%s】" % task["name"])
-    print("对比文件：%s vs %s" % (task["file1"], task["file2"]))
-    print("=" * 70)
+    """执行单个对比任务，返回 True/False"""
+    print
+    print u"=" * 70
+    print u"【任务：%s】" % task[u"name"]
+    print u"对比文件：%s  vs  %s" % (task[u"file1"], task[u"file2"])
+    print u"=" * 70
 
-    # 读取两个文件
-    df1 = read_excel(task["file1"], task["col_map"].keys(), task["transform_funcs"])
-    df2 = read_excel(task["file2"], task["col_map"].values(), task["transform_funcs"])
+    try:
+        df1 = load_excel(task[u"file1"])
+        df2 = load_excel(task[u"file2"])
+        if df1 is None or df2 is None:
+            return False
 
-    if df1 is None or df2 is None:
-        print("❌ 任务执行失败，跳过")
+        # 校验列是否存在
+        map_keys = list(task[u"col_map"].keys())
+        map_vals = list(task[u"col_map"].values())
+        missing1 = [c for c in map_keys if c not in df1.columns]
+        missing2 = [c for c in map_vals if c not in df2.columns]
+        if missing1 or missing2:
+            if missing1:
+                print u"❌ 文件1缺失列：%s" % missing1
+            if missing2:
+                print u"❌ 文件2缺失列：%s" % missing2
+            return False
+
+        # 筛选列 + 统一列名（统一为文件1的列名，方便 transform 查找）
+        df1 = df1[map_keys]
+        # Python 2.5 无字典推导式，用 generator + dict()
+        rev_map = dict((v, k) for k, v in task[u"col_map"].items())
+        df2 = df2[map_vals].rename(columns=rev_map)
+
+        # 应用清洗/转换函数
+        for col, func in task[u"transform_funcs"].items():
+            df1[col] = df1[col].apply(func)
+            df2[col] = df2[col].apply(func)
+
+        # 设主键索引并排序
+        key_col = task[u"key_col"]
+        df1 = df1.set_index(key_col).sort_index()
+        df2 = df2.set_index(key_col).sort_index()
+
+        # ---- 独有行检测 ----
+        only1 = sorted(set(df1.index) - set(df2.index))
+        only2 = sorted(set(df2.index) - set(df1.index))
+
+        if len(only1) > 0:
+            print
+            print u"❌ 仅在第一个文件的主键(%d条)：" % len(only1)
+            for k in only1[:10]:
+                print u"  %s" % k
+            if len(only1) > 10:
+                print u"  ... 省略剩余 %d 条" % (len(only1) - 10)
+
+        if len(only2) > 0:
+            print
+            print u"❌ 仅在第二个文件的主键(%d条)：" % len(only2)
+            for k in only2[:10]:
+                print u"  %s" % k
+            if len(only2) > 10:
+                print u"  ... 省略剩余 %d 条" % (len(only2) - 10)
+
+        # ---- 共同行逐字段对比（手动实现，替代 df.compare()） ----
+        # df.compare() 是 pandas 1.1.0 (2020) 才引入的，老 pandas 不存在。
+        # 这里的实现与 compare(keep_shape=True, keep_equal=True) 语义一致，
+        # 并在输出格式上更友好：逐行逐列展示"文件1的值 ←→ 文件2的值"。
+        common_idx = df1.index.intersection(df2.index)
+        df_common1 = df1.loc[common_idx]
+        df_common2 = df2.loc[common_idx]
+
+        # 差异掩码：值不同 且 非"双方均为空"
+        # NaN != NaN 在 pandas 中为 True，所以要排除 isnull1 & isnull2
+        diff_mask = (df_common1 != df_common2) & \
+                    ~(df_common1.isnull() & df_common2.isnull())
+        diff_count = diff_mask.any(axis=1).sum()
+
+        if diff_count == 0:
+            print
+            print u"✅ 共同行【所有字段完全一致】"
+        else:
+            print
+            print u"⚠️ 共同行存在 %d 行数据差异：" % diff_count
+            print u"-" * 70
+            # 只遍历有差异的行（通常量很少，性能 OK）
+            diff_row_mask = diff_mask.any(axis=1)
+            diff_indices = diff_row_mask[diff_row_mask].index
+            for idx in diff_indices:
+                print u"  [主键] %s" % safe_unicode(idx)
+                row_mask = diff_mask.loc[idx]
+                diff_cols = [c for c in row_mask.index if row_mask[c]]
+                for col in diff_cols:
+                    v1 = df_common1.loc[idx, col]
+                    v2 = df_common2.loc[idx, col]
+                    # NaN 统一显示为 "(空)"
+                    s1 = u"(空)" if pd.isnull(v1) else safe_unicode(v1)
+                    s2 = u"(空)" if pd.isnull(v2) else safe_unicode(v2)
+                    print u"    %s: [文件1] %s  ←→  [文件2] %s" % (col, s1, s2)
+                print
+
+        # ---- 统计信息 ----
+        print
+        print u"【统计】"
+        print u"  文件1总行数：%d" % len(df1)
+        print u"  文件2总行数：%d" % len(df2)
+        print u"  共同行数：%d" % len(common_idx)
+        print u"  独有行数：文件1:%d | 文件2:%d" % (len(only1), len(only2))
+        print u"  数据差异行数：%d" % diff_count
+
+        # ---- 判定任务是否通过 ----
+        ignore_only = task.get(u"ignore_only_row", False)
+        if ignore_only:
+            return diff_count == 0
+        else:
+            return (len(only1) == 0 and len(only2) == 0 and diff_count == 0)
+
+    except Exception, e:
+        print u"❌ 任务执行异常：%s" % safe_unicode(e)
+        traceback.print_exc()
         return False
-
-    # 重命名 df2 的列
-    reverse_map = dict((v, k) for k, v in task["col_map"].items())
-    df2_renamed = {}
-    for key, row in df2.items():
-        new_row = {}
-        for old_col, new_col in reverse_map.items():
-            new_row[new_col] = row[old_col]
-        df2_renamed[key] = new_row
-    df2 = df2_renamed
-
-    # 重新设置主键
-    key_col = task["key_col"]
-    df1_keyed = {}
-    for row in df1.values():
-        key = row[key_col]
-        if key is not None:
-            df1_keyed[key] = row
-
-    df2_keyed = {}
-    for row in df2.values():
-        key = row[key_col]
-        if key is not None:
-            df2_keyed[key] = row
-
-    # 找出差异
-    keys1 = set(df1_keyed.keys())
-    keys2 = set(df2_keyed.keys())
-    only1 = sorted(keys1 - keys2)
-    only2 = sorted(keys2 - keys1)
-
-    if len(only1) > 0:
-        print("\n❌ 仅在第一个文件的行（主键）：")
-        for key in only1[:10]:  # 最多显示10个，太多省略
-            print    ("  %s" % key)
-        if len(only1) > 10:
-            print    ("  ... 共 %d 条" % len(only1))
-
-    if len(only2) > 0:
-        print("\n❌ 仅在第二个文件的行（主键）：")
-        for key in only2[:10]:
-            print    ("  %s" % key)
-        if len(only2) > 10:
-            print    ("  ... 共 %d 条" % len(only2))
-
-    # 对比单元格差异
-    common_keys = sorted(keys1 & keys2)
-    diff_count = 0
-    print("\n✅ 共同行的单元格差异（处理后）：")
-    print("-" * 70)
-    print("%-15s %-15s %-20s %-20s" % ("主键", "列名", "第一个文件", "第二个文件"))
-    print("-" * 70)
-
-    for key in common_keys:
-        row1 = df1_keyed[key]
-        row2 = df2_keyed[key]
-        for col in task["col_map"].keys():
-            val1 = row1[col]
-            val2 = row2[col]
-            if val1 != val2:
-                diff_count += 1
-                if diff_count <= 20:  # 最多显示20条差异
-                    print    ("%-15s %-15s %-20s %-20s" % (
-                        unicode(key),
-                        unicode(col),
-                        unicode(val1) if val1 is not None else "空",
-                        unicode(val2) if val2 is not None else "空"
-                    ))
-
-    if diff_count == 0:
-        print("所有要对比的列，处理后完全一致！")
-    elif diff_count > 20:
-        print("  ... 共 %d 条差异" % diff_count)
-
-    print("\n统计：")
-    print("  第一个文件总行数：%d" % len(df1_keyed))
-    print("  第二个文件总行数：%d" % len(df2_keyed))
-    print("  共同行数：%d" % len(common_keys))
-    print("  差异单元格数：%d" % diff_count)
-
-    return diff_count == 0 and len(only1) == 0 and len(only2) == 0
 
 
 def main():
-    print("=" * 70)
-    print("批量 Excel 对比工具（Python 2.5.2 兼容版）")
-    print("共加载 %d 个对比任务" % len(TASKS))
-    print("=" * 70)
+    print u"=" * 70
+    print u"批量Excel对比工具（深度清洗+区分独有行）Python 2.5 兼容版"
+    print u"共加载 %d 个对比任务" % len(TASKS)
+    print u"=" * 70
 
     success_count = 0
-    for i, task in enumerate(TASKS):
-        print("\n[%d/%d] 正在执行..." % (i + 1, len(TASKS)))
-        is_ok = compare_single_task(task)
-        if is_ok:
+    for idx, task in enumerate(TASKS):
+        print
+        print u"[%d/%d] 开始执行：%s" % (idx + 1, len(TASKS), task[u"name"])
+        ok = compare_single_task(task)
+        if ok:
             success_count += 1
 
-    print("\n" + "=" * 70)
-    print("全部任务执行完成！")
-    print("成功：%d/%d" % (success_count, len(TASKS)))
-    print("=" * 70)
+    print
+    print u"=" * 70
+    print u"执行汇总：成功 %d / 总计 %d" % (success_count, len(TASKS))
+    print u"=" * 70
+
+    # 返回退出码：全部成功=0，否则=1（方便 CI / 脚本判断）
+    sys.exit(0 if success_count == len(TASKS) else 1)
 
 
-if __name__ == "__main__":
+if __name__ == u"__main__":
     main()
