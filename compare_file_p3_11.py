@@ -190,7 +190,8 @@ def compare_single_task(task):
         df_common1 = df1.loc[common_idx]
         df_common2 = df2.loc[common_idx]
 
-        diff_df = df_common1.compare(df_common2, keep_shape=True, keep_equal=True)
+        # diff_df = df_common1.compare(df_common2, keep_shape=True, keep_equal=True)
+        diff_df = df_common1.compare(df_common2, keep_shape=True)
         diff_count = diff_df.notna().any(axis=1).sum()
 
         if diff_count == 0:
