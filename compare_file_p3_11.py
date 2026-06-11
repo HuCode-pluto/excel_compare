@@ -36,7 +36,7 @@ def full_clean(s):
     return s
 
 
-def trim_str_length(s, max_length=19):
+def trim_str_length(s, max_length):
     if pd.isna(s):
         return ""
     result = str(s).strip()
@@ -46,19 +46,40 @@ def trim_str_length(s, max_length=19):
 
 
 def convert_station_type(s):
-    """开关站类型 中文/数字 统一映射"""
+    """中文/数字 统一映射"""
     if pd.isna(s):
         return ""
     s = full_clean(s)
-    if s in ("开关站",):
-        return "0"
-    elif s in ("箱式变电站",):
-        return "1"
-    if s == "0.0" or s == "0":
-        return "0"
-    elif s == "1.0" or s == "1":
-        return "1"
-    return s
+
+    mapping = {
+        "开关站": "0",
+        "环网柜": "1",
+        "非接地刀闸": "2",
+        "街坊站": "2",
+        "配网小车刀闸": "100",
+        "0": "0",
+        "0.0": "0",
+        "1": "1",
+        "1.0": "1",
+    }
+    # 如果 s 在字典中，返回对应值；否则返回 s 自身
+    return mapping.get(s, s)
+
+    # if s in ("开关站",):
+    #     return "0"
+    # elif s in ("环网柜",):
+    #     return "1"
+    # elif s in ("非接地刀闸","街坊站",):
+    #     return "2"
+    # elif s in ("环网柜",):
+    #
+    # elif s in ("配网小车刀闸",):
+    #     return "100"
+    # if s == "0.0" or s == "0":
+    #     return "0"
+    # elif s == "1.0" or s == "1":
+    #     return "1"
+    # return s
 
 # ========== 全局配置区 ==========
 # 输出结果目录：所有对比结果、日志都会保存到这里，自动创建
@@ -139,7 +160,6 @@ TASKS = [
             "组合开关名称": "NAME",
             "所属开关站": "combined_name",
             "所属馈线": "feeder_name",
-            # "开关站类型": "COMBINED_STATE",
         },
         "transform_funcs": {
             "组合开关名称": full_clean,
@@ -147,6 +167,29 @@ TASKS = [
             "所属馈线": full_clean,
         },
         "key_col": "组合开关名称",
+        "ignore_only_row": False   # 忽略独有行
+    },
+# 任务5：刀闸实时库商用库对比
+    {
+        "name": "开关实时库商用库对比",
+        "file1": "C:\\Users\\13303\\Desktop\\kg.xls",
+        "file2": "C:\\Users\\13303\\Desktop\\kg_dm.xls",
+        "col_map": {
+            "刀闸ID号": "ID",
+            "刀闸名称": "NAME",
+            "所属开关站": "combined_name",
+            "所属馈线": "feeder_name",
+            "所属组合设备": "composite_switch_name",
+            # "开关站类型": "COMBINED_STATE",
+        },
+        "transform_funcs": {
+            "刀闸ID号": lambda x: trim_str_length(x, 19),
+            "刀闸名称": full_clean,
+            "所属开关站": full_clean,
+            "所属馈线": full_clean,
+            "所属组合设备": full_clean,
+        },
+        "key_col": "刀闸ID号",
         "ignore_only_row": False   # 忽略独有行
     },
 ]
