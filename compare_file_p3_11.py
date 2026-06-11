@@ -3,6 +3,21 @@ import pandas as pd
 import sys
 import os
 import traceback
+from datetime import datetime
+
+
+# 自定义输出类：同时输出到终端和日志文件
+class TeeOutput:
+    def __init__(self, terminal, log):
+        self.terminal = terminal
+        self.log = log
+    def write(self, message):
+        self.terminal.write(message)
+        self.log.write(message)
+        self.log.flush()
+    def flush(self):
+        self.terminal.flush()
+        self.log.flush()
 
 
 # ========== 通用转换&清洗函数 ==========
@@ -45,6 +60,10 @@ def convert_station_type(s):
         return "1"
     return s
 
+# ========== 全局配置区 ==========
+# 输出结果目录：所有对比结果、日志都会保存到这里，自动创建
+OUTPUT_DIR = "C:\\Users\\13303\\Desktop\\excel_compare\\compare_result"
+
 
 # ========== 批量任务配置区 ==========
 # ignore_only_row: True=忽略独有行，只对比共同数据；False=严格校验行数一致
@@ -52,9 +71,10 @@ TASKS = [
     # 任务1：配网馈线表实时库和达梦对比
     {
         "name": "配网馈线表实时库和达梦对比",
-        "file1": "C:\\Users\\13303\\Desktop\\kx610.xls",
-        "file2": "C:\\Users\\13303\\Desktop\\kx610_dm.xls",
+        "file1": "C:\\Users\\13303\\Desktop\\kx.xls",
+        "file2": "C:\\Users\\13303\\Desktop\\kx_dm.xls",
         "col_map": {
+            # "所属厂站": "st_name",
             "馈线ID号": "ID",
             "馈线名称": "NAME",
             # "图形名": "GRAPH_NAME",
@@ -62,16 +82,16 @@ TASKS = [
         "transform_funcs": {
             "馈线ID号": lambda x: trim_str_length(x, 19),
             "馈线名称": full_clean,
-            # "图形名": full_clean,
+            # "所属厂站": full_clean,
         },
         "key_col": "馈线ID号",
-        "ignore_only_row": True   # 忽略独有行
+        "ignore_only_row": False   # 忽略独有行
     },
     # 任务2：开关站实时库商用库对比
     {
         "name": "开关站实时库商用库对比",
-        "file1": "C:\\Users\\13303\\Desktop\\kgz610.xls",
-        "file2": "C:\\Users\\13303\\Desktop\\kgz610_dm.xls",
+        "file1": "C:\\Users\\13303\\Desktop\\kgz.xls",
+        "file2": "C:\\Users\\13303\\Desktop\\kgz_dm.xls",
         "col_map": {
             "开关站ID号": "ID",
             "开关站名称": "NAME",
@@ -85,7 +105,49 @@ TASKS = [
             # "开关站类型": convert_station_type,
         },
         "key_col": "开关站ID号",
-        "ignore_only_row": True   # 忽略独有行
+        "ignore_only_row": False   # 忽略独有行
+    },
+# 任务3：开关实时库商用库对比
+    {
+        "name": "开关实时库商用库对比",
+        "file1": "C:\\Users\\13303\\Desktop\\kg.xls",
+        "file2": "C:\\Users\\13303\\Desktop\\kg_dm.xls",
+        "col_map": {
+            "开关ID号": "ID",
+            "开关名称": "NAME",
+            "所属开关站": "combined_name",
+            "所属馈线": "feeder_name",
+            "所属组合设备": "composite_switch_name",
+            # "开关站类型": "COMBINED_STATE",
+        },
+        "transform_funcs": {
+            "开关ID号": lambda x: trim_str_length(x, 19),
+            "开关名称": full_clean,
+            "所属开关站": full_clean,
+            "所属馈线": full_clean,
+            "所属组合设备": full_clean,
+        },
+        "key_col": "开关ID号",
+        "ignore_only_row": False   # 忽略独有行
+    },
+# 任务4：组合开关实时库商用库对比
+    {
+        "name": "开关实时库商用库对比",
+        "file1": "C:\\Users\\13303\\Desktop\\zhkg.xls",
+        "file2": "C:\\Users\\13303\\Desktop\\zhkg_dm.xls",
+        "col_map": {
+            "组合开关名称": "NAME",
+            "所属开关站": "combined_name",
+            "所属馈线": "feeder_name",
+            # "开关站类型": "COMBINED_STATE",
+        },
+        "transform_funcs": {
+            "组合开关名称": full_clean,
+            "所属开关站": full_clean,
+            "所属馈线": full_clean,
+        },
+        "key_col": "组合开关名称",
+        "ignore_only_row": False   # 忽略独有行
     },
 ]
 
