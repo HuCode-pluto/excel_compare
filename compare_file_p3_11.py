@@ -805,8 +805,6 @@ def compare_single_task(task):
         print(f"  数据差异行数：{diff_count}")
 
         # ========== 新增：导出当前任务结果到Excel ==========
-        import pandas as pd
-        from datetime import datetime
         # 构造导出文件名
         task_safe_name = task['name'].replace("\\", "").replace("/", "").replace(":", "")
         excel_name = f"{task_safe_name}_对比结果_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
