@@ -4,6 +4,8 @@ import sys
 import os
 import traceback
 from datetime import datetime
+from decimal import Decimal, InvalidOperation
+
 
 
 # 自定义输出类：同时输出到终端和日志文件
@@ -21,19 +23,46 @@ class TeeOutput:
 
 
 # ========== 通用转换&清洗函数 ==========
+# def full_clean(s):
+#     """
+#     深度清洗：去除所有空格、制表符、全角空格、空白字符，统一为纯字符串
+#     解决肉眼一致、隐形字符导致的误判
+#     """
+#     if pd.isna(s):
+#         return ""
+#     s = str(s)
+#     # 常规半角空格、制表符、换行
+#     s = s.replace(" ", "").replace("\t", "").replace("\n", "").replace("\r", "")
+#     # 全角空格
+#     s = s.replace("　", "")
+#     return s
+
 def full_clean(s):
     """
-    深度清洗：去除所有空格、制表符、全角空格、空白字符，统一为纯字符串
-    解决肉眼一致、隐形字符导致的误判
+    深度清洗 + 数值标准化：
+    1. 清除各类空格/空白符
+    2. 数字(含科学计数、1.0、超大数)统一转为纯整数字符串
+    3. 非文本保留原始清洗结果
     """
     if pd.isna(s):
         return ""
+    # 第一步：先清除所有空白字符（原有逻辑保留）
     s = str(s)
-    # 常规半角空格、制表符、换行
     s = s.replace(" ", "").replace("\t", "").replace("\n", "").replace("\r", "")
-    # 全角空格
     s = s.replace("　", "")
-    return s
+
+    # 第二步：新增【数值统一格式化】（解决 1/1.0、科学计数 问题）
+    try:
+        # 尝试转为高精度数字，兼容科学计数、小数
+        num = Decimal(s)
+        # 如果是整数，强制转为整数字符串（去掉 .0、科学计数）
+        if num == num.to_integral_value():
+            return str(num.to_integral_value())
+        # 非整数浮点数，保留原值（按需可自行扩展）
+        return str(num)
+    except (InvalidOperation, ValueError):
+        # 不是数字（普通中文、字母、混合文本），直接返回清洗后字符串
+        return s
 
 
 def trim_str_length(s, max_length):
@@ -360,8 +389,8 @@ TASKS = [
     # 任务1：配网馈线表实时库和达梦对比
     {
         "name": "配网馈线表实时库和达梦对比",
-        "file1": "C:\\Users\\13303\\Desktop\\kxb.xls",
-        "file2": "C:\\Users\\13303\\Desktop\\kxb_dm.xls",
+        "file1": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\kxb.xls",
+        "file2": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\kxb_dm.xls",
         "col_map": {
             # "所属厂站": "st_name",
             "馈线ID号": "ID",
@@ -379,8 +408,8 @@ TASKS = [
     # 任务2：开关站实时库商用库对比
     {
         "name": "开关站实时库商用库对比",
-        "file1": "C:\\Users\\13303\\Desktop\\kgzb.xls",
-        "file2": "C:\\Users\\13303\\Desktop\\kgzb_dm.xls",
+        "file1": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\kg_zb.xls",
+        "file2": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\kg_zb_dm.xls",
         "col_map": {
             "开关站ID号": "ID",
             "开关站名称": "NAME",
@@ -397,11 +426,11 @@ TASKS = [
         "ignore_only_row": False   # 忽略独有行
     },
 
-# 任务3：开关实时库商用库对比
+    # 任务3：开关实时库商用库对比
     {
         "name": "开关实时库商用库对比",
-        "file1": "C:\\Users\\13303\\Desktop\\kgb.xls",
-        "file2": "C:\\Users\\13303\\Desktop\\kgb_dm.xls",
+        "file1": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\kgb.xls",
+        "file2": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\kgb_dm.xls",
         "col_map": {
             "开关ID号": "ID",
             "开关名称": "NAME",
@@ -424,11 +453,11 @@ TASKS = [
         "ignore_only_row": False   # 忽略独有行
     },
 
-# 任务4：组合开关实时库商用库对比
+    # 任务4：组合开关实时库商用库对比
     {
-        "name": "开关实时库商用库对比",
-        "file1": "C:\\Users\\13303\\Desktop\\zhkgb.xls",
-        "file2": "C:\\Users\\13303\\Desktop\\zhkgb_dm.xls",
+        "name": "组合开关实时库商用库对比",
+        "file1": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\zhkgb.xls",
+        "file2": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\zhkgb_dm.xls",
         "col_map": {
             "组合开关名称": "NAME",
             "所属开关站": "combined_name",
@@ -442,11 +471,11 @@ TASKS = [
         "key_col": "组合开关名称",
         "ignore_only_row": False   # 忽略独有行
     },
-# 任务5：刀闸实时库商用库对比
+    # 任务5：刀闸实时库商用库对比
     {
         "name": "刀闸实时库商用库对比",
-        "file1": "C:\\Users\\13303\\Desktop\\dzb.xls",
-        "file2": "C:\\Users\\13303\\Desktop\\dzb_dm.xls",
+        "file1": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\dzb.xls",
+        "file2": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\dzb_dm.xls",
         "col_map": {
             "刀闸ID号": "ID",
             "刀闸名称": "NAME",
@@ -466,11 +495,11 @@ TASKS = [
         "key_col": "刀闸ID号",
         "ignore_only_row": False   # 忽略独有行
     },
-# 任务6：接地刀闸实时库商用库对比
+    # 任务6：接地刀闸实时库商用库对比
     {
         "name": "接地刀闸实时库商用库对比",
-        "file1": "C:\\Users\\13303\\Desktop\\jddzb.xls",
-        "file2": "C:\\Users\\13303\\Desktop\\jddzb_dm.xls",
+        "file1": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\jddzb.xls",
+        "file2": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\jddzb_dm.xls",
         "col_map": {
             "接地刀闸ID号": "ID",
             "接地刀闸名称": "NAME",
@@ -490,11 +519,11 @@ TASKS = [
         "key_col": "接地刀闸ID号",
         "ignore_only_row": False   # 忽略独有行
     },
-# 任务7：配网母线实时库商用库对比
+    # 任务7：配网母线实时库商用库对比
     {
         "name": "母线表实时库商用库对比",
-        "file1": "C:\\Users\\13303\\Desktop\\mxb.xls",
-        "file2": "C:\\Users\\13303\\Desktop\\mxb_dm.xls",
+        "file1": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\mxb.xls",
+        "file2": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\mxb_dm.xls",
         "col_map": {
             "母线ID号": "ID",
             "母线名称": "NAME",
@@ -514,20 +543,20 @@ TASKS = [
         "key_col": "母线ID号",
         "ignore_only_row": False   # 忽略独有行
     },
-# 任务8：配网终端信息表实时库商用库对比
+    # 任务8：配网终端信息表实时库商用库对比
     {
         "name": "终端信息表实时库商用库对比",
-        "file1": "C:\\Users\\13303\\Desktop\\zdxxb.xls",
-        "file2": "C:\\Users\\13303\\Desktop\\zdxxb_dm.xls",
+        "file1": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\zdxxb.xls",
+        "file2": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\zdxxb_dm.xls",
         "col_map": {
             "终端ID": "ID",
             "终端名称": "NAME",
             "所属开关站": "combined_name",
             "所属馈线": "feeder_name",
-            "终端编号": "code",
-            "是否通讯状态统计": "if_stat_static",
-            "终端类别": "term_type",
-            "运行定制区号": "cur_fixed_area",
+            "终端编号": "CODE",
+            "是否通讯状态统计": "IF_STAT_STATIC",
+            "终端类别": "TERM_TYPE",
+            # "运行定值区号": "CUR_FIXED_AREA",
             # "所属组合设备": "composite_switch_name",
             # "刀闸类型": "DISCR_TYPE",
         },
@@ -538,7 +567,7 @@ TASKS = [
             "终端编号": full_clean,
             "是否通讯状态统计": yn_station_type,
             "终端类别": convert_station_type,
-            "运行定制区号": full_clean,
+            # "运行定值区号": full_clean,
             "所属馈线": full_clean,
             # "所属组合设备": full_clean,
             # "刀闸类型": convert_station_type,
@@ -546,11 +575,11 @@ TASKS = [
         "key_col": "终端ID",
         "ignore_only_row": False   # 忽略独有行
     },
-# 任务9：保护节点表实时库商用库对比
+    # 任务9：保护节点表实时库商用库对比
     {
         "name": "保护节点表实时库商用库对比",
-        "file1": "C:\\Users\\13303\\Desktop\\bhjdb.xls",
-        "file2": "C:\\Users\\13303\\Desktop\\bhjdb_dm.xls",
+        "file1": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\bhjdb.xls",
+        "file2": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\bhjdb_dm.xls",
         "col_map": {
             "标识": "ID",
             "中文名称": "NAME",
@@ -566,7 +595,7 @@ TASKS = [
             "标识": lambda x: trim_str_length(x, 19),
             "中文名称": full_clean,
             "所属开关站": full_clean,
-            "终端编号": full_clean,
+            "所属馈线": full_clean,
             "电压类型ID": yn_station_type,
             "类型": convert_station_type,
             "开关数目": full_clean,
@@ -576,38 +605,38 @@ TASKS = [
         "key_col": "标识",
         "ignore_only_row": False   # 忽略独有行
     },
-# 任务10：测点遥测表实时库商用库对比
+    # 任务10：测点遥测表实时库商用库对比
     {
         "name": "测点遥测表表实时库商用库对比",
-        "file1": "C:\\Users\\13303\\Desktop\\cdycb.xls",
-        "file2": "C:\\Users\\13303\\Desktop\\cdycb_dm.xls",
+        "file1": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\cdycb.xls",
+        "file2": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\cdycb_dm.xls",
         "col_map": {
             "中文名称": "NAME",
             "所属开关站": "combined_name",
             "所属馈线": "feeder_name",
             "预留整型值1": "DEFAULT_I1",
-            "预留长整型值2": "DEFAULT_L1",
+            "预留长整型2": "DEFAULT_L1",
         },
         "transform_funcs": {
             "中文名称": full_clean,
             "所属开关站": full_clean,
             "所属馈线": full_clean,
             "预留整型值1": convert_station_type,
-            "预留长整型值2": lambda x: trim_str_length(x, 19),
+            "预留长整型2": lambda x: trim_str_length(x, 19),
         },
         "key_col": "中文名称",
         "ignore_only_row": False   # 忽略独有行
     },
-# 任务11：断路器DA控制表实时库商用库对比
+    # 任务11：断路器DA控制表实时库商用库对比
     {
         "name": "断路器DA控制表实时库商用库对比",
-        "file1": "C:\\Users\\13303\\Desktop\\dlqdakzb.xls",
-        "file2": "C:\\Users\\13303\\Desktop\\dlqdakzb_dm.xls",
+        "file1": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\dlqdakzb.xls",
+        "file2": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\dlqdakzb_dm.xls",
         "col_map": {
             "标识": "ID",
             "厂站名称": "st_name",
             "开关名称": "cb_name",
-            "关联馈线": "feeder_name",
+            "关连馈线": "feeder_name",
             "运行状态": "SIMU_MODE",
             "执行模式": "CTRL_MODE",
             "图形名称": "GRAPH_NAME",
@@ -617,7 +646,7 @@ TASKS = [
             "标识": lambda x: trim_str_length(x, 19),
             "厂站名称": full_clean,
             "开关名称": full_clean,
-            "关联馈线": full_clean,
+            "关连馈线": full_clean,
             "运行状态": convert_station_type,
             "执行模式": convert_station_type,
             "故障启动条件": convert_station_type,
@@ -626,14 +655,14 @@ TASKS = [
         "key_col": "标识",
         "ignore_only_row": False   # 忽略独有行
     },
-# 任务12：配网通道表实时库商用库对比
+    # 任务12：配网通道表实时库商用库对比
     {
         "name": "配网通道表实时库商用库对比",
-        "file1": "C:\\Users\\13303\\Desktop\\dlqdakzb.xls",
-        "file2": "C:\\Users\\13303\\Desktop\\dlqdakzb_dm.xls",
+        "file1": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\tdb.xls",
+        "file2": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\tdb_dm.xls",
         "col_map": {
-            "通道编号": "chan_no",
-            "通道名称": "chan_name",
+            "通道编号": "CHAN_NO",
+            "通道名称": "CHAN_NAME",
             "通讯终端ID": "com_terminal_name",
             "网络描述一": "NET_DESCRIPTION1",
             "通信规约类型": "PROTO_TYPE",
@@ -647,7 +676,7 @@ TASKS = [
             "通信规约类型": convert_station_type,
             # "所属系统": convert_station_type,
         },
-        "key_col": "标识",
+        "key_col": "通道编号",
         "ignore_only_row": False   # 忽略独有行
     },
 ]
@@ -775,6 +804,37 @@ def compare_single_task(task):
         print(f"  独有行数：文件1:{len(only1)} | 文件2:{len(only2)}")
         print(f"  数据差异行数：{diff_count}")
 
+        # ========== 新增：导出当前任务结果到Excel ==========
+        import pandas as pd
+        from datetime import datetime
+        # 构造导出文件名
+        task_safe_name = task['name'].replace("\\", "").replace("/", "").replace(":", "")
+        excel_name = f"{task_safe_name}_对比结果_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+        excel_path = os.path.join(OUTPUT_DIR, excel)
+
+        # 组装各类数据表
+        df_only1 = pd.DataFrame({"仅文件1主键": only1})
+        df_only2 = pd.DataFrame({"仅文件2主键": only2})
+        df_diff = df_common1.join(df_common2, rsuffix="_文件2")
+        df_stat = pd.DataFrame([{
+            "文件1总行数": len(df1),
+            "文件2总行数": len(df2),
+            "共同行数": len(common_idx),
+            "文件1独有行数": len(only1),
+            "文件2独有行数": len(only2),
+            "差异行数": diff_count
+        }])
+
+        # 多Sheet写入Excel
+        with pd.ExcelWriter(excel_path, engine="openpyxl") as writer:
+            df_diff.to_excel(writer, sheet_name="差异数据", index=True)
+            df_only1.to_excel(writer, sheet_name="仅文件1独有行", index=False)
+            df_only2.to_excel(writer, sheet_name="仅文件2独有行", index=False)
+            df_stat.to_excel(writer, sheet_name="统计信息", index=False)
+        print(f"✅ 任务结果已导出至：{excel_path}")
+
+
+
         # 判定任务成功
         ignore_only = task.get("ignore_only_row", False)
         if ignore_only:
@@ -791,6 +851,18 @@ def compare_single_task(task):
 
 
 def main():
+    #  自动创建结果目录
+    if not os.path.exists(OUTPUT_DIR):
+        os.makedirs(OUTPUT_DIR)
+
+    # 生成日志文件名（时间戳）
+    log_name = f"compare_log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
+    log_path = os.path.join(OUTPUT_DIR, log_name)
+    # 打开日志文件，绑定双输出
+    log_file = open(log_path, "w", encoding="utf-8")
+    sys.stdout = TeeOutput(sys.stdout, log_file)
+
+    # 对比文件
     print("=" * 70)
     print("批量Excel对比工具（深度清洗+区分独有行）")
     print(f"共加载 {len(TASKS)} 个对比任务")
@@ -806,6 +878,11 @@ def main():
     print("\n" + "=" * 70)
     print(f"执行汇总：成功 {success_count} / 总计 {len(TASKS)}")
     print("=" * 70)
+
+    # 关闭日志文件
+    log_file.close()
+    # 恢复标准输出
+    sys.stdout = sys.__stdout__
 
 
 if __name__ == "__main__":
