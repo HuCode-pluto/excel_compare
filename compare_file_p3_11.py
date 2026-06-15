@@ -76,6 +76,72 @@ def trim_str_length(s, max_length):
     return result
 
 
+def left_trim_by_ref_len(target_col, ref_col):
+    """
+    通用跨列处理函数：目标列内容从左侧去除【参考列的字符长度】
+    参数：
+        target_col: 要处理的目标列名（被截断的列）
+        ref_col: 参考列名（用它的长度来截断）
+    返回：可直接用于行级apply的处理函数
+    """
+
+    # 新增：给处理函数标记目标列属性
+    def _process_row(row):
+        # 空值安全处理
+        target_val = row[target_col]
+        ref_val = row[ref_col]
+
+        target_str = str(target_val).strip() if pd.notna(target_val) else ""
+        ref_str = str(ref_val).strip() if pd.notna(ref_val) else ""
+
+        ref_len = len(ref_str)
+        # 目标列长度 <= 参考列长度，返回空
+        if len(target_str) <= ref_len:
+            return ""
+        # 从左侧截断，返回剩余内容
+        return target_str[ref_len:]
+
+    # 标记目标列，方便后续提取
+    _process_row.target_col = target_col
+    # 标记参考列，方便后续提取
+    _process_row.ref_col = ref_col
+    return _process_row
+
+
+def right_keep_by_ref_len(target_col, ref_col):
+    """
+    通用跨列处理函数：目标列内容从右侧开始，保留【参考列字符长度】的字符
+    参数：
+        target_col: 要处理的目标列名（被截取的列）
+        ref_col: 参考列名（用它的长度决定保留多少位）
+    返回：可直接用于行级apply的处理函数
+    """
+    def _process_row(row):
+        # 空值安全处理
+        target_val = row[target_col]
+        ref_val = row[ref_col]
+
+        target_str = str(target_val).strip() if pd.notna(target_val) else ""
+        ref_str = str(ref_val).strip() if pd.notna(ref_val) else ""
+
+        ref_len = len(ref_str)
+        # 参考列为空 / 长度为0，返回空
+        if ref_len <= 0:
+            return ""
+        # 目标列长度 <= 参考列长度，原样返回全部内容
+        if len(target_str) <= ref_len:
+            return target_str
+        # 从右侧截取，保留指定长度
+        return target_str[-ref_len:]
+
+    # 标记目标列，兼容现有跨列处理逻辑
+    _process_row.target_col = target_col
+    # 标记参考列，方便后续提取
+    _process_row.ref_col = ref_col
+    return _process_row
+
+
+
 def convert_station_type(s):
     """中文/数字 统一映射"""
     if pd.isna(s):
@@ -387,6 +453,7 @@ def yn_station_type(s):
 OUTPUT_DIR = "C:\\Users\\13303\\Desktop\\excel_compare\\compare_result"
 
 TASKS = [
+
     # 任务1：配网馈线表实时库和达梦对比
     {
         "name": "配网馈线表实时库和达梦对比",
@@ -438,7 +505,7 @@ TASKS = [
             "所属开关站": "combined_name",
             "所属馈线": "feeder_name",
             "所属组合设备": "composite_switch_name",
-            "开关类型": "BRK_TYPE",
+            # "开关类型": "BRK_TYPE",
             "开关联络类型": "BRK_CONNECT_TYPE",
         },
         "transform_funcs": {
@@ -447,7 +514,7 @@ TASKS = [
             "所属开关站": full_clean,
             "所属馈线": full_clean,
             "所属组合设备": full_clean,
-            "开关类型": convert_station_type,
+            # "开关类型": convert_station_type,
             "开关联络类型": convert_station_type,
         },
         "key_col": "开关ID号",
@@ -654,7 +721,20 @@ TASKS = [
             "图形名称": full_clean,
         },
         "key_col": "标识",
-        "ignore_only_row": False   # 忽略独有行
+        "ignore_only_row": False,   # 忽略独有行
+
+        # ========== 新增：跨列处理配置 ==========
+        # 新增：指定跨列模式为跨文件参考
+        #  cross_mode == "same_file"同文件内参考，两个文件各自独立处理
+        #  cross_mode == "cross_file" 文件1的目标列，参考文件2的参考列长度
+        "cross_col_mode": "cross_file",
+        "cross_col_transforms": [
+            # target_col 左侧去除 ref_col 的长度
+            # left_trim_by_ref_len(target_col="开关名称", ref_col="厂站名称"),
+            # 可继续添加多个规则，格式同上
+            # 示例：target_col 从右侧保留 ref_col 长度的内容
+            right_keep_by_ref_len(target_col="开关名称", ref_col="开关名称"),
+        ]
     },
     # 任务12：配网通道表实时库商用库对比
     {
@@ -759,6 +839,72 @@ def compare_single_task(task):
             df1[col] = df1[col].apply(func)
             df2[col] = df2[col].apply(func)
 
+        # ========== 新增：跨列转换处理（多任务复用）==========
+        # cross_transforms = task.get("cross_col_transforms", [])
+        # for trans_func in cross_transforms:
+        #     # 对两个文件执行完全相同的跨列处理
+        #     df1 = df1.apply(trans_func, axis=1)
+        #     # df2 = df2.apply(trans_func, axis=1)
+
+        # cross_transforms = task.get("cross_col_transforms", [])
+        # for trans_func in cross_transforms:
+        #     # 从处理函数中提取目标列，通用适配
+        #     target_col = getattr(trans_func, "target_col", None)
+        #     if target_col and target_col in df1.columns and target_col in df2.columns:
+        #         df1[target_col] = df1.apply(trans_func, axis=1)
+        #         # df2[target_col] = df2.apply(trans_func, axis=1)
+        #     else:
+        #         print(f"⚠️ 跨列处理警告：未找到目标列{target_col}或处理函数无标记，跳过该规则")
+
+
+        # ========== 跨列转换处理（支持同文件/跨文件两种模式）==========
+        print("【调试】df1列名：", list(df1.columns))
+        print("【调试】df2列名：", list(df2.columns))
+        cross_transforms = task.get("cross_col_transforms", [])
+        # 模式：same_file=同文件内参考（默认），cross_file=文件1参考文件2的列
+        cross_mode = task.get("cross_col_mode", "same_file")
+
+        for trans_func in cross_transforms:
+            target_col = getattr(trans_func, "target_col", None)
+            ref_col = getattr(trans_func, "ref_col", None)
+
+            if not target_col or target_col not in df1.columns:
+                print(f"⚠️ 跨列处理警告：目标列 {target_col} 不存在，跳过该规则")
+                continue
+
+            if cross_mode == "same_file":
+                # 原有逻辑：同文件内参考，两个文件各自独立处理
+                if ref_col not in df1.columns or ref_col not in df2.columns:
+                    print(f"⚠️ 跨列处理警告：参考列 {ref_col} 不存在，跳过该规则")
+                    continue
+                df1[target_col] = df1.apply(trans_func, axis=1)
+                # df2[target_col] = df2.apply(trans_func, axis=1)
+
+            elif cross_mode == "cross_file":
+                # 新增逻辑：文件1的目标列，参考文件2的参考列长度
+                if ref_col not in df2.columns:
+                    print(f"⚠️ 跨列处理警告：文件2中参考列 {ref_col} 不存在，跳过该规则")
+                    continue
+
+                # 按索引对齐，计算文件2参考列的字符长度
+                ref_len_series = df2[ref_col].astype(str).str.strip().str.len()
+
+                # 执行右侧保留截取
+                def _cross_right_process(row):
+                    target_str = str(row[target_col]).strip() if pd.notna(row[target_col]) else ""
+                    keep_len = int(row["_temp_ref_len"])
+                    if keep_len <= 0:
+                        return ""
+                    if len(target_str) <= keep_len:
+                        return target_str
+                    return target_str[-keep_len:]
+
+                df1["_temp_ref_len"] = ref_len_series
+                df1[target_col] = df1.apply(_cross_right_process, axis=1)
+                df1.drop(columns=["_temp_ref_len"], inplace=True)
+
+
+##
         key_col = task["key_col"]
         df1 = df1.set_index(key_col).sort_index()
         df2 = df2.set_index(key_col).sort_index()
