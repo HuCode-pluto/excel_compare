@@ -5,7 +5,8 @@ import os
 import traceback
 from datetime import datetime
 from decimal import Decimal, InvalidOperation
-
+from openpyxl.styles import PatternFill
+from openpyxl.utils import get_column_letter
 
 
 # 自定义输出类：同时输出到终端和日志文件
@@ -624,7 +625,7 @@ TASKS = [
             "预留整型值1": convert_station_type,
             "预留长整型2": lambda x: trim_str_length(x, 19),
         },
-        "key_col": "中文名称",
+        "key_col": ["中文名称","所属开关站"],
         "ignore_only_row": False   # 忽略独有行
     },
     # 任务11：断路器DA控制表实时库商用库对比
@@ -804,13 +805,20 @@ def compare_single_task(task):
         print(f"  独有行数：文件1:{len(only1)} | 文件2:{len(only2)}")
         print(f"  数据差异行数：{diff_count}")
 
-        # ========== 新增：导出当前任务结果到Excel ==========
-        # 构造导出文件名
-        task_safe_name = task['name'].replace("\\", "").replace("/", "").replace(":", "")
-        excel_name = f"{task_safe_name}_对比结果_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
-        excel_path = os.path.join(OUTPUT_DIR, excel)
 
-        # 组装各类数据表
+
+
+
+        # ========== 新增：导出当前任务结果到Excel ==========
+
+        # 清洗任务名称，规避Windows非法文件名
+        task_safe_name = task['name'].replace("\\", "").replace("/", "").replace(":", "").replace("*", "").replace("?",
+                                                                                                                   "").replace(
+            "\"", "").replace("<", "").replace(">", "").replace("|", "")
+        excel_name = f"{task_safe_name}_对比结果_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+        excel_path = os.path.join(OUTPUT_DIR, excel_name)
+
+        # 组装数据表
         df_only1 = pd.DataFrame({"仅文件1主键": only1})
         df_only2 = pd.DataFrame({"仅文件2主键": only2})
         df_diff = df_common1.join(df_common2, rsuffix="_文件2")
@@ -823,7 +831,7 @@ def compare_single_task(task):
             "差异行数": diff_count
         }])
 
-        # 多Sheet写入Excel
+        # 多工作表写入Excel
         with pd.ExcelWriter(excel_path, engine="openpyxl") as writer:
             df_diff.to_excel(writer, sheet_name="差异数据", index=True)
             df_only1.to_excel(writer, sheet_name="仅文件1独有行", index=False)
@@ -831,6 +839,70 @@ def compare_single_task(task):
             df_stat.to_excel(writer, sheet_name="统计信息", index=False)
         print(f"✅ 任务结果已导出至：{excel_path}")
 
+
+
+        # # 清洗任务名称，规避Windows非法文件名
+        # task_safe_name = task['name'].replace("\\", "").replace("/", "").replace(":", "").replace("*", "").replace("?","").replace("\"", "").replace("<", "").replace(">", "").replace("|", "")
+        # excel_name = f"{task_safe_name}_对比结果_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+        # excel_path = os.path.join(OUTPUT_DIR, excel_name)
+        #
+        # # 组装数据表
+        # df_only1 = pd.DataFrame({"仅文件1主键": only1})
+        # df_only2 = pd.DataFrame({"仅文件2主键": only2})
+        # df_diff = df_common1.join(df_common2, rsuffix="_文件2")
+        # df_stat = pd.DataFrame([{
+        #     "文件1总行数": len(df1),
+        #     "文件2总行数": len(df2),
+        #     "共同行数": len(common_idx),
+        #     "文件1独有行数": len(only1),
+        #     "文件2独有行数": len(only2),
+        #     "差异行数": diff_count
+        # }])
+        #
+        # # 第一步：先写入所有Sheet数据
+        # with pd.ExcelWriter(excel_path, engine="openpyxl") as writer:
+        #     df_diff.to_excel(writer, sheet_name="差异数据", index=True)
+        #     df_only1.to_excel(writer, sheet_name="仅文件1独有行", index=False)
+        #     df_only2.to_excel(writer, sheet_name="仅文件2独有行", index=False)
+        #     df_stat.to_excel(writer, sheet_name="统计信息", index=False)
+        #
+        # # 2. 统一加载工作簿（保证wb变量一定被定义）
+        # from openpyxl import load_workbook
+        # diff_fill = PatternFill(start_color="FFCCCC", end_color="FFCCCC", fill_type="solid")
+        # wb = load_workbook(excel_path)
+        # ws = wb["差异数据"]
+        #
+        # # 3. 仅存在差异时，执行单元格标色
+        # if diff_count > 0:
+        #     # 获取pandas原生差异结果，保持判定规则统一
+        #     raw_diff = df_common1.compare(df_common2, keep_shape=True)
+        #     diff_index_list = raw_diff.index.tolist()
+        #
+        #     max_r = ws.max_row
+        #     max_c = ws.max_column
+        #     # 跳过表头，遍历数据行
+        #     for row_idx in range(2, max_r + 1):
+        #         row_key = ws.cell(row=row_idx, column=1).value
+        #         if row_key not in diff_index_list:
+        #             continue
+        #         # 成对列比对标色
+        #         for col in range(2, max_c, 2):
+        #             cell_left = ws.cell(row=row_idx, column=col)
+        #             cell_right = ws.cell(row=row_idx, column=col + 1)
+        #             val1 = str(cell_left.value).strip() if cell_left.value is not None else ""
+        #             val2 = str(cell_right.value).strip() if cell_right.value is not None else ""
+        #             if val1 != val2:
+        #                 cell_left.fill = diff_fill
+        #                 cell_right.fill = diff_fill
+        #
+        # # 4. 统一保存文件（无论有无差异都会执行）
+        # wb.save(excel_path)
+        #
+        # # 5. 输出提示
+        # if diff_count == 0:
+        #     print(f"✅ 任务结果已导出至：{excel_path}（无数据差异，未标记单元格）")
+        # else:
+        #     print(f"✅ 任务结果已导出至：{excel_path}（仅差异单元格已高亮）")
 
 
         # 判定任务成功
