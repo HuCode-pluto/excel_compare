@@ -29,39 +29,41 @@ import time
 #   cut_left:n        从左侧删除n个字符（固定长度），例：cut_left:2
 #   cut_right:n       从右侧删除n个字符（固定长度），例：cut_right:3
 #   remove_suffix:后缀1|后缀2|...  若字符串以任意指定后缀结尾则删除该后缀（多后缀用|分隔，自动优先匹配长后缀）
+#   keep_from:字符串   保留指定字符串及之后的所有内容，删除其前面的字符（匹配第一个出现的位置，无匹配则不处理）
+#   remove_left4_if_digits   若前4位全部是数字则删除前4位，否则不处理
 # ========================================================
 
 TASKS = [
     # ========== 刀闸匹配（含二次匹配） ==========
-    # {
-    #     # 文件1路径（主表）
-    #     "file1": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260629\\fx_dz_629.xlsx",
-    #     # 文件2路径（从表）
-    #     "file2": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260629\\刀闸.xlsx",
-    #     # 输出文件路径
-    #     "output": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260629\\刀闸匹配结果.xlsx",
-    #     # Excel是否有表头：True=有表头，列名使用字符串；False=无表头，列名使用数字索引
-    #     "has_header": True,
-    #     # 第一次对比列配置：每个元组为(文件1列, 文件1预处理规则列表, 文件2列, 文件2预处理规则列表)
-    #     "compare_cols": [
-    #         ('刀闸名称', ["symbols", "trim_left:站房名称", "left:8", "remove_suffix:2|手|手车2|手车"], '名称',["symbols", "left:8", "remove_suffix:2"]),
-    #         ('站房名称', ["symbols", "chinese"], '所属站房', ["symbols", "chinese"]),
-    #     ],
-    #     # 二次匹配对比列配置（可选）：仅对第一次未匹配行生效
-    #     "secondary_compare_cols": [
-    #         # 示例：放宽匹配规则，仅匹配站房名称+刀闸名称前6位
-    #         ('刀闸名称', ["symbols", "trim_left:站房名称", "left:2"], '名称', ["symbols", "left:2"]),
-    #         ('站房名称', ["symbols", "chinese"], '所属站房', ["symbols", "chinese"]),
-    #     ],
-    #     # 待返回列：匹配成功后从文件2提取这些列追加到文件1末尾
-    #     "return_cols": ["ID", "名称", "所属站房"],
-    #     # 文件2匹配键重复时保留第一条
-    #     "keep_duplicates": "first",
-    #     # 单独输出最终未匹配行（两次匹配都失败的）
-    #     "output_unmatched": True,
-    #     # 打印匹配样例
-    #     "verbose": True
-    # },
+    {
+        # 文件1路径（主表）
+        "file1": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260629\\fx_dz_629.xlsx",
+        # 文件2路径（从表）
+        "file2": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260629\\刀闸.xlsx",
+        # 输出文件路径
+        "output": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260629\\刀闸匹配结果.xlsx",
+        # Excel是否有表头：True=有表头，列名使用字符串；False=无表头，列名使用数字索引
+        "has_header": True,
+        # 第一次对比列配置：每个元组为(文件1列, 文件1预处理规则列表, 文件2列, 文件2预处理规则列表)
+        "compare_cols": [
+            ('刀闸名称', ["symbols", "remove_left:站房名称", "left:8", "remove_suffix:2|手|手车2|手车"], '名称',["symbols", "left:8", "remove_suffix:2"]),
+            ('站房名称', ["symbols", "chinese"], '所属站房', ["symbols", "chinese"]),
+        ],
+        # 二次匹配对比列配置（可选）：仅对第一次未匹配行生效
+        "secondary_compare_cols": [
+            # 示例：放宽匹配规则，仅匹配站房名称+刀闸名称前6位
+            ('刀闸名称', ["symbols", "remove_left:站房名称", "left:2"], '名称', ["symbols", "left:2"]),
+            ('站房名称', ["symbols", "chinese"], '所属站房', ["symbols", "chinese"]),
+        ],
+        # 待返回列：匹配成功后从文件2提取这些列追加到文件1末尾
+        "return_cols": ["ID", "名称", "所属站房"],
+        # 文件2匹配键重复时保留第一条
+        "keep_duplicates": "first",
+        # 单独输出最终未匹配行（两次匹配都失败的）
+        "output_unmatched": True,
+        # 打印匹配样例
+        "verbose": True
+    },
 # ========== 断路器/负荷开关匹配（含二次匹配） ==========
     {
         # 文件1路径（主表）
@@ -74,15 +76,15 @@ TASKS = [
         "has_header": True,
         # 第一次对比列配置：每个元组为(文件1列, 文件1预处理规则列表, 文件2列, 文件2预处理规则列表)
         "compare_cols": [
-            ('开关名称', ["symbols", "trim_left:站房名称", "left:8", "remove_suffix:2|1"], '名称',["symbols", "left:8", "remove_suffix:2|1"]),
+            ('开关名称', ["symbols", "remove_left:站房名称", "left:8", "remove_suffix:2|1"], '名称',["symbols","remove_left4_if_digits","left:8", "remove_suffix:2|1"]),
             ('站房名称', ["symbols", "chinese"], '所属站房', ["symbols", "chinese"]),
         ],
         # 二次匹配对比列配置（可选）：仅对第一次未匹配行生效
-        # "secondary_compare_cols": [
-        #     # 示例：放宽匹配规则，仅匹配站房名称+刀闸名称前6位
-        #     ('开关名称', ["symbols", "trim_left:站房名称", "left:2"], '名称', ["symbols", "left:2"]),
-        #     ('站房名称', ["symbols", "chinese"], '所属站房', ["symbols", "chinese"]),
-        # ],
+        "secondary_compare_cols": [
+            # 示例：放宽匹配规则，仅匹配站房名称+刀闸名称前2位
+            ('开关名称', ["symbols", "remove_left:站房名称", "left:2"], '名称', ["symbols", "left:2"]),
+            ('站房名称', ["symbols", "chinese"], '所属站房', ["symbols", "chinese"]),
+        ],
         # 待返回列：匹配成功后从文件2提取这些列追加到文件1末尾
         "return_cols": ["ID", "名称", "所属站房"],
         # 文件2匹配键重复时保留第一条
@@ -92,25 +94,66 @@ TASKS = [
         # 打印匹配样例
         "verbose": True
     },
-    # ========== 任务2 示例（可复制添加更多） ==========
-    # {
-    #     "file1": "task2_file1.xlsx",
-    #     "file2": "task2_file2.xlsx",
-    #     "output": "result2.xlsx",
-    #     "has_header": True,
-    #     "compare_cols": [
-    #         ("订单号", ["strip", "number"], "订单编号", ["strip", "number"]),
-    #         ("客户名", ["strip"], "客户姓名", ["strip", "chinese"]),
-    #     ],
-    #     secondary_compare_cols: [
-    #         ("订单号", ["strip", "number"], "订单编号", ["strip", "number"]),
-    #         ("手机号", ["strip", "number"], "电话", ["strip", "number"]),
-    #     ],
-    #     "return_cols": ["金额", "备注"],
-    #     "keep_duplicates": "last",
-    #     "output_unmatched": True,
-    #     "verbose": True
-    # },
+# ========== 接地刀闸开关匹配（含二次匹配） ==========
+    {
+        # 文件1路径（主表）
+        "file1": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260629\\fx_jddz_629.xlsx",
+        # 文件2路径（从表）
+        "file2": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260629\\接地刀闸.xlsx",
+        # 输出文件路径
+        "output": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260629\\接地刀闸匹配结果.xlsx",
+        # Excel是否有表头：True=有表头，列名使用字符串；False=无表头，列名使用数字索引
+        "has_header": True,
+        # 第一次对比列配置：每个元组为(文件1列, 文件1预处理规则列表, 文件2列, 文件2预处理规则列表)
+        "compare_cols": [
+            ('接地刀名称', ["symbols", "remove_left:站房名称", "left:8", "remove_suffix:2|1"], '名称', ["symbols", "left:8", "remove_suffix:2|1"]),
+            ('站房名称', ["symbols", "chinese"], '所属站房', ["symbols", "chinese"]),
+        ],
+        # 二次匹配对比列配置（可选）：仅对第一次未匹配行生效
+        "secondary_compare_cols": [
+            # 示例：放宽匹配规则，仅匹配站房名称+刀闸名称前6位
+            ('接地刀名称', ["symbols", "remove_left:站房名称", "left:2"], '名称', ["symbols", "left:2"]),
+            ('站房名称', ["symbols", "chinese"], '所属站房', ["symbols", "chinese"]),
+        ],
+        # 待返回列：匹配成功后从文件2提取这些列追加到文件1末尾
+        "return_cols": ["ID", "名称", "所属站房"],
+        # 文件2匹配键重复时保留第一条
+        "keep_duplicates": "first",
+        # 单独输出最终未匹配行（两次匹配都失败的）
+        "output_unmatched": True,
+        # 打印匹配样例
+        "verbose": True
+    },
+# ========== 母线匹配（含二次匹配） ==========
+    {
+        # 文件1路径（主表）
+        "file1": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260629\\fx_mx_629.xlsx",
+        # 文件2路径（从表）
+        "file2": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260629\\母线段.xlsx",
+        # 输出文件路径
+        "output": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260629\\母线匹配结果.xlsx",
+        # Excel是否有表头：True=有表头，列名使用字符串；False=无表头，列名使用数字索引
+        "has_header": True,
+        # 第一次对比列配置：每个元组为(文件1列, 文件1预处理规则列表, 文件2列, 文件2预处理规则列表)
+        "compare_cols": [
+            ('母线名称', ["symbols", "remove_left:站房名称", "left:8", "remove_suffix:2|1"], '设备名称', ["symbols", "left:8", "remove_suffix:2|1"]),
+            ('站房名称', ["symbols", "chinese"], '所属站房', ["symbols", "chinese"]),
+        ],
+        # 二次匹配对比列配置（可选）：仅对第一次未匹配行生效
+        # "secondary_compare_cols": [
+        #     # 示例：放宽匹配规则，仅匹配站房名称+刀闸名称前6位
+        #     ('母线名称', ["symbols", "remove_left:站房名称", "left:2"], '名称', ["symbols", "left:2"]),
+        #     ('站房名称', ["symbols", "chinese"], '所属站房', ["symbols", "chinese"]),
+        # ],
+        # 待返回列：匹配成功后从文件2提取这些列追加到文件1末尾
+        "return_cols": ["ID", "设备名称", "所属站房"],
+        # 文件2匹配键重复时保留第一条
+        "keep_duplicates": "first",
+        # 单独输出最终未匹配行（两次匹配都失败的）
+        "output_unmatched": True,
+        # 打印匹配样例
+        "verbose": True
+    },
 ]
 
 # ---------- 预编译正则表达式，提升性能 ----------
@@ -186,6 +229,40 @@ def process_text(text, rule_list, row=None):
                     s = s[:-len(suf)]
                     break  # 只删除第一个匹配的后缀，不循环删除
 
+        # ---------- 新增：保留指定字符串及之后内容，删除前面内容 ----------
+        # elif rule.startswith("keep_from:"):
+        #     # 解析目标字符串（第一个冒号后的所有内容都视为目标）
+        #     target = rule.split(":", 1)[1]
+        #     # 空目标直接跳过
+        #     if not target:
+        #         continue
+        #     # 查找目标字符串第一次出现的位置
+        #     pos = s.find(target)
+        #     # 找到则从该位置开始截取（包含目标字符串本身）
+        #     if pos != -1:
+        #         s = s[pos:]
+        #     # 未找到则不处理，保持原字符串不变
+        # ---------- 多目标：保留最先出现的指定字符串及之后内容，删除前面内容 ----------
+        elif rule.startswith("keep_from:"):
+            # 解析规则，用竖线分割多个候选目标字符串，过滤空串
+            targets_str = rule.split(":", 1)[1]
+            targets = [t for t in targets_str.split("|") if t]
+            if not targets:
+                continue
+
+            # 遍历所有目标，找到在字符串中最先出现的位置（最小有效索引）
+            min_pos = None
+            for target in targets:
+                pos = s.find(target)
+                if pos != -1:
+                    # 记录最靠左的出现位置
+                    if min_pos is None or pos < min_pos:
+                        min_pos = pos
+
+            # 找到任意目标则从最靠前的位置截取（包含目标字符串本身）
+            if min_pos is not None:
+                s = s[min_pos:]
+            # 所有目标都未匹配则不处理，保持原字符串
         # ---------- 字符串截取规则 ----------
         elif rule.startswith("left:"):
             try:
@@ -223,6 +300,13 @@ def process_text(text, rule_list, row=None):
             except (IndexError, ValueError):
                 raise ValueError(f"规则格式错误: {rule}，正确示例 cut_right:3")
             s = s[:-n] if n <= len(s) else ""
+
+        # ---------- 新增：前4位全为数字则删除前4位 ----------
+        elif rule == "remove_left4_if_digits":
+            # 长度至少4位，且前4位全部为数字时才删除
+            if len(s) >= 4 and s[:4].isdigit():
+                s = s[4:]
+            # 不满足条件则保持原字符串不变
 
         # ---------- 跨列引用规则（需要行上下文） ----------
         elif rule.startswith("remove_left:"):
