@@ -602,14 +602,14 @@ def run_single_task(task):
     print(f"\n最终结果已保存到：{output_path}")
 
     # ----- 11. 输出最终未匹配行（两次都失败的）-----
-    if output_unmatched:
-        final_unmatched_rows = final_result[final_result[first_return_col].isna()]
-        if not final_unmatched_rows.empty:
-            unmatched_path = output_path.replace(".xlsx", "_未匹配.xlsx")
-            final_unmatched_rows.to_excel(unmatched_path, index=False, header=has_header)
-            print(f"最终未匹配行已保存到：{unmatched_path}")
-        else:
-            print("所有行均已匹配，无需生成未匹配文件。")
+    # if output_unmatched:
+    #     final_unmatched_rows = final_result[final_result[first_return_col].isna()]
+    #     if not final_unmatched_rows.empty:
+    #         unmatched_path = output_path.replace(".xlsx", "_未匹配.xlsx")
+    #         final_unmatched_rows.to_excel(unmatched_path, index=False, header=has_header)
+    #         print(f"最终未匹配行已保存到：{unmatched_path}")
+    #     else:
+    #         print("所有行均已匹配，无需生成未匹配文件。")
 
 
 def main():
