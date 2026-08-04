@@ -2,6 +2,9 @@ import pandas as pd
 import re
 import time
 
+
+
+
 # ===================== 多任务配置区 =====================
 # 每个任务是一个字典，可添加任意多个任务，脚本会逐个自动执行
 # 新增可选参数：
@@ -34,14 +37,37 @@ import time
 # ========================================================
 
 TASKS = [
+# ========== 开关站匹配（含二次匹配） ==========
+    {
+        # 文件1路径（主表）
+        "file1": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260804\\kgz_804.xls",
+        # 文件2路径（从表）
+        "file2": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260804\\配电站房.xlsx",
+        # 输出文件路径
+        "output": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260804\\开关站匹配结果.xlsx",
+        # Excel是否有表头：True=有表头，列名使用字符串；False=无表头，列名使用数字索引
+        "has_header": True,
+        # 第一次对比列配置：每个元组为(文件1列, 文件1预处理规则列表, 文件2列, 文件2预处理规则列表)
+        "compare_cols": [
+            ('站房NAME', ["symbols"], '站房名称',["symbols"]),
+        ],
+        # 待返回列：匹配成功后从文件2提取这些列追加到文件1末尾
+        "return_cols": ["ID", "站房名称", ],
+        # 文件2匹配键重复时保留第一条
+        "keep_duplicates": "first",
+        # 单独输出最终未匹配行（两次匹配都失败的）
+        "output_unmatched": True,
+        # 打印匹配样例
+        "verbose": True
+    },
     # ========== 刀闸匹配（含二次匹配） ==========
     {
         # 文件1路径（主表）
-        "file1": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260629\\fx_dz_629.xlsx",
+        "file1": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260804\\dz_804.xls",
         # 文件2路径（从表）
-        "file2": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260629\\刀闸.xlsx",
+        "file2": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260804\\刀闸.xlsx",
         # 输出文件路径
-        "output": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260629\\刀闸匹配结果.xlsx",
+        "output": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260804\\刀闸匹配结果.xlsx",
         # Excel是否有表头：True=有表头，列名使用字符串；False=无表头，列名使用数字索引
         "has_header": True,
         # 第一次对比列配置：每个元组为(文件1列, 文件1预处理规则列表, 文件2列, 文件2预处理规则列表)
@@ -67,22 +93,22 @@ TASKS = [
 # ========== 断路器/负荷开关匹配（含二次匹配） ==========
     {
         # 文件1路径（主表）
-        "file1": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260629\\fx_kg_二遥_629.xlsx",
+        "file1": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260804\\kg_804.xls",
         # 文件2路径（从表）
-        "file2": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260629\\断路器.xlsx",
+        "file2": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260804\\断路器.xlsx",
         # 输出文件路径
-        "output": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260629\\开关匹配结果.xlsx",
+        "output": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260804\\开关匹配结果.xlsx",
         # Excel是否有表头：True=有表头，列名使用字符串；False=无表头，列名使用数字索引
         "has_header": True,
         # 第一次对比列配置：每个元组为(文件1列, 文件1预处理规则列表, 文件2列, 文件2预处理规则列表)
         "compare_cols": [
-            ('开关名称', ["symbols", "remove_left:站房名称", "left:8", "remove_suffix:2|1"], '名称',["symbols","remove_left4_if_digits","left:8", "remove_suffix:2|1"]),
+            ('开关名称', ["symbols", "remove:自建", "remove_left:站房名称", "left:8","remove_suffix:2|1"], '名称',["symbols","remove_left4_if_digits","left:8", "remove_suffix:2|1"]),
             ('站房名称', ["symbols", "chinese"], '所属站房', ["symbols", "chinese"]),
         ],
         # 二次匹配对比列配置（可选）：仅对第一次未匹配行生效
         "secondary_compare_cols": [
             # 示例：放宽匹配规则，仅匹配站房名称+刀闸名称前2位
-            ('开关名称', ["symbols", "remove_left:站房名称", "left:2"], '名称', ["symbols", "left:2"]),
+            ('开关名称', ["symbols", "remove_left:站房名称", "left:2"], '名称', ["symbols", "remove_left4_if_digits","left:2"]),
             ('站房名称', ["symbols", "chinese"], '所属站房', ["symbols", "chinese"]),
         ],
         # 待返回列：匹配成功后从文件2提取这些列追加到文件1末尾
@@ -97,11 +123,11 @@ TASKS = [
 # ========== 接地刀闸开关匹配（含二次匹配） ==========
     {
         # 文件1路径（主表）
-        "file1": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260629\\fx_jddz_629.xlsx",
+        "file1": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260804\\jddz_804.xls",
         # 文件2路径（从表）
-        "file2": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260629\\接地刀闸.xlsx",
+        "file2": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260804\\接地刀闸.xlsx",
         # 输出文件路径
-        "output": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260629\\接地刀闸匹配结果.xlsx",
+        "output": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260804\\接地刀闸匹配结果.xlsx",
         # Excel是否有表头：True=有表头，列名使用字符串；False=无表头，列名使用数字索引
         "has_header": True,
         # 第一次对比列配置：每个元组为(文件1列, 文件1预处理规则列表, 文件2列, 文件2预处理规则列表)
@@ -127,11 +153,11 @@ TASKS = [
 # ========== 母线匹配（含二次匹配） ==========
     {
         # 文件1路径（主表）
-        "file1": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260629\\fx_mx_629.xlsx",
+        "file1": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260804\\mx_804.xls",
         # 文件2路径（从表）
-        "file2": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260629\\母线段.xlsx",
+        "file2": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260804\\母线段.xlsx",
         # 输出文件路径
-        "output": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260629\\母线匹配结果.xlsx",
+        "output": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260804\\母线匹配结果.xlsx",
         # Excel是否有表头：True=有表头，列名使用字符串；False=无表头，列名使用数字索引
         "has_header": True,
         # 第一次对比列配置：每个元组为(文件1列, 文件1预处理规则列表, 文件2列, 文件2预处理规则列表)
