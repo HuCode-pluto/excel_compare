@@ -1,6 +1,7 @@
 import pandas as pd
 import re
 import time
+import os
 
 
 
@@ -48,7 +49,7 @@ TASKS = [
         "sheet3": "站房",   # 可选，不指定则使用第一个Sheet
 
         # 输出文件路径
-        "output": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260804\\开关站匹配结果2.xlsx",
+        "output": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260804\\开关站匹配结果.xlsx",
         # Excel是否有表头：True=有表头，列名使用字符串；False=无表头，列名使用数字索引
         "has_header": True,
         # 第一次对比列配置：每个元组为(文件1列, 文件1预处理规则列表, 文件2列, 文件2预处理规则列表)
@@ -80,7 +81,7 @@ TASKS = [
         "file3": "C:\\Users\\13303\\Desktop\\work\\fxdata\\示例\\2工具匹配成功后生成\\调控云设备模型20260804\\奉贤地调设备匹配情况总表-0513 - 匹配结果.xlsx",
         "sheet3": "刀闸",  # 可选，不指定则使用第一个Sheet
         # 输出文件路径
-        "output": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260804\\刀闸匹配结果2.xlsx",
+        "output": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260804\\刀闸匹配结果.xlsx",
         # Excel是否有表头：True=有表头，列名使用字符串；False=无表头，列名使用数字索引
         "has_header": True,
         # 第一次对比列配置：每个元组为(文件1列, 文件1预处理规则列表, 文件2列, 文件2预处理规则列表)
@@ -917,7 +918,7 @@ def run_single_task(task):
             print("（样例展示失败）")
 
     # ----- 10. 保存最终结果文件（NaN替换为"未匹配"便于阅读）-----
-    # 将返回列中的 NaN 替换为 "未匹配"（三次匹配结果都在 return_cols 中）
+    # 文件名追加匹配率：XXX（90.0%）.xlsx
     output_result = final_result.copy()
     for col in return_cols:
         # 处理可能被重命名的返回列（原始名和加后缀的版本）
@@ -926,8 +927,11 @@ def run_single_task(task):
                 output_result[actual_col] = output_result[actual_col].fillna("未匹配")
 
     output_result.drop(columns=['_row_id'], inplace=True)
-    output_result.to_excel(output_path, index=False, header=has_header)
-    print(f"\n最终结果已保存到：{output_path}（未匹配行显示为'未匹配'）")
+    # 生成带匹配率的文件名
+    base, ext = os.path.splitext(output_path)
+    rated_path = f"{base}（{total_match_rate:.1f}%）{ext}"
+    output_result.to_excel(rated_path, index=False, header=has_header)
+    print(f"\n最终结果已保存到：{rated_path}（未匹配行显示为'未匹配'）")
 
     # ----- 11. 单独输出未匹配行（如果配置了）-----
     if output_unmatched and final_unmatched > 0:
@@ -938,7 +942,8 @@ def run_single_task(task):
             final_unmatched_rows.drop(columns=['_row_id'], inplace=True)
             # NaN替换为"(空)"
             final_unmatched_rows = final_unmatched_rows.fillna("(空)")
-            unmatched_path = output_path.replace(".xlsx", "_未匹配.xlsx")
+            base, ext = os.path.splitext(output_path)
+            unmatched_path = f"{base}（{total_match_rate:.1f}%）_未匹配{ext}"
             final_unmatched_rows.to_excel(unmatched_path, index=False, header=has_header)
             print(f"未匹配行已单独保存到：{unmatched_path}")
     elif output_unmatched and final_unmatched == 0:
