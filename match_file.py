@@ -43,8 +43,12 @@ TASKS = [
         "file1": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260804\\kgz_804.xls",
         # 文件2路径（从表）
         "file2": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260804\\配电站房.xlsx",
+        # 文件3路径
+        "file3": "C:\\Users\\13303\\Desktop\\work\\fxdata\\示例\\2工具匹配成功后生成\\调控云设备模型20260804\\奉贤地调设备匹配情况总表-0513 - 匹配结果.xlsx",
+        "sheet3": "站房",   # 可选，不指定则使用第一个Sheet
+
         # 输出文件路径
-        "output": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260804\\开关站匹配结果.xlsx",
+        "output": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260804\\开关站匹配结果2.xlsx",
         # Excel是否有表头：True=有表头，列名使用字符串；False=无表头，列名使用数字索引
         "has_header": True,
         # 第一次对比列配置：每个元组为(文件1列, 文件1预处理规则列表, 文件2列, 文件2预处理规则列表)
@@ -58,7 +62,13 @@ TASKS = [
         # 单独输出最终未匹配行（两次匹配都失败的）
         "output_unmatched": True,
         # 打印匹配样例
-        "verbose": True
+        "verbose": True,
+
+        "three_compare_cols": [
+            ('站房NAME', ["symbols"], '地调站房名称', ["symbols"]),
+        ],
+        "three_return_cols": ["调控云ID", "调控云名称"],
+        "three_keep_duplicates": "first"   # 可选，默认与keep_duplicates一致
     },
     # ========== 刀闸匹配（含二次匹配） ==========
     {
@@ -66,8 +76,11 @@ TASKS = [
         "file1": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260804\\dz_804.xls",
         # 文件2路径（从表）
         "file2": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260804\\刀闸.xlsx",
+        # 文件3路径
+        "file3": "C:\\Users\\13303\\Desktop\\work\\fxdata\\示例\\2工具匹配成功后生成\\调控云设备模型20260804\\奉贤地调设备匹配情况总表-0513 - 匹配结果.xlsx",
+        "sheet3": "刀闸",  # 可选，不指定则使用第一个Sheet
         # 输出文件路径
-        "output": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260804\\刀闸匹配结果.xlsx",
+        "output": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260804\\刀闸匹配结果2.xlsx",
         # Excel是否有表头：True=有表头，列名使用字符串；False=无表头，列名使用数字索引
         "has_header": True,
         # 第一次对比列配置：每个元组为(文件1列, 文件1预处理规则列表, 文件2列, 文件2预处理规则列表)
@@ -88,7 +101,15 @@ TASKS = [
         # 单独输出最终未匹配行（两次匹配都失败的）
         "output_unmatched": True,
         # 打印匹配样例
-        "verbose": True
+        "verbose": True,
+
+        "three_compare_cols": [
+            ('刀闸名称', ["symbols"], '地调设备名称', ["symbols"]),
+            ('站房名称', ["symbols", "chinese"], '站房名称', ["symbols", "chinese"]),
+        ],
+        "three_return_cols": ["调控云设备ID", "调控云设备名称","站房名称"],
+        "three_keep_duplicates": "first"   # 可选，默认与keep_duplicates一致
+
     },
 # ========== 断路器/负荷开关匹配（含二次匹配） ==========
     {
@@ -96,6 +117,9 @@ TASKS = [
         "file1": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260804\\kg_804.xls",
         # 文件2路径（从表）
         "file2": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260804\\断路器.xlsx",
+        # 文件3路径
+        "file3": "C:\\Users\\13303\\Desktop\\work\\fxdata\\示例\\2工具匹配成功后生成\\调控云设备模型20260804\\奉贤地调设备匹配情况总表-0513 - 匹配结果.xlsx",
+        "sheet3": "开关",  # 可选，不指定则使用第一个Sheet
         # 输出文件路径
         "output": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260804\\开关匹配结果.xlsx",
         # Excel是否有表头：True=有表头，列名使用字符串；False=无表头，列名使用数字索引
@@ -118,7 +142,15 @@ TASKS = [
         # 单独输出最终未匹配行（两次匹配都失败的）
         "output_unmatched": True,
         # 打印匹配样例
-        "verbose": True
+        "verbose": True,
+
+        "three_compare_cols": [
+            ('开关名称', ["symbols"], '地调设备名称', ["symbols"]),
+            ('站房名称', ["symbols", "chinese"], '站房名称橙色站房未匹配', ["symbols", "chinese"]),
+        ],
+        "three_return_cols": ["调控云设备ID", "调控云设备名称", "站房名称橙色站房未匹配"],
+        "three_keep_duplicates": "first"  # 可选，默认与keep_duplicates一致
+
     },
 # ========== 接地刀闸开关匹配（含二次匹配） ==========
     {
@@ -126,6 +158,9 @@ TASKS = [
         "file1": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260804\\jddz_804.xls",
         # 文件2路径（从表）
         "file2": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260804\\接地刀闸.xlsx",
+        # 文件3路径
+        "file3": "C:\\Users\\13303\\Desktop\\work\\fxdata\\示例\\2工具匹配成功后生成\\调控云设备模型20260804\\奉贤地调设备匹配情况总表-0513 - 匹配结果.xlsx",
+        "sheet3": "接地刀闸",  # 可选，不指定则使用第一个Sheet
         # 输出文件路径
         "output": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260804\\接地刀闸匹配结果.xlsx",
         # Excel是否有表头：True=有表头，列名使用字符串；False=无表头，列名使用数字索引
@@ -148,7 +183,15 @@ TASKS = [
         # 单独输出最终未匹配行（两次匹配都失败的）
         "output_unmatched": True,
         # 打印匹配样例
-        "verbose": True
+        "verbose": True,
+
+        "three_compare_cols": [
+            ('接地刀名称', ["symbols"], '地调设备名称', ["symbols"]),
+            ('站房名称', ["symbols", "chinese"], '地调站房名称', ["symbols", "chinese"]),
+        ],
+        "three_return_cols": ["调控云设备ID", "调控云设备名称", "地调站房名称"],
+        "three_keep_duplicates": "first"  # 可选，默认与keep_duplicates一致
+
     },
 # ========== 母线匹配（含二次匹配） ==========
     {
@@ -156,6 +199,9 @@ TASKS = [
         "file1": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260804\\mx_804.xls",
         # 文件2路径（从表）
         "file2": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260804\\母线段.xlsx",
+        # 文件3路径
+        "file3": "C:\\Users\\13303\\Desktop\\work\\fxdata\\示例\\2工具匹配成功后生成\\调控云设备模型20260804\\奉贤地调设备匹配情况总表-0513 - 匹配结果.xlsx",
+        "sheet3": "母线",  # 可选，不指定则使用第一个Sheet
         # 输出文件路径
         "output": "C:\\Users\\13303\\Desktop\\work\\fxdata\示例\\2工具匹配成功后生成\\调控云设备模型20260804\\母线匹配结果.xlsx",
         # Excel是否有表头：True=有表头，列名使用字符串；False=无表头，列名使用数字索引
@@ -178,7 +224,15 @@ TASKS = [
         # 单独输出最终未匹配行（两次匹配都失败的）
         "output_unmatched": True,
         # 打印匹配样例
-        "verbose": True
+        "verbose": True,
+
+        "three_compare_cols": [
+            ('母线名称', ["symbols"], '地调设备名称', ["symbols"]),
+            ('站房名称', ["symbols", "chinese"], '站房名称橙色站房未匹配', ["symbols", "chinese"]),
+        ],
+        "three_return_cols": ["调控云设备ID", "调控云设备名称", "站房名称橙色站房未匹配"],
+        "three_keep_duplicates": "first"  # 可选，默认与keep_duplicates一致
+
     },
 ]
 
@@ -371,39 +425,119 @@ def process_text(text, rule_list, row=None):
 
 def _can_vectorize(rule_list):
     """
-    判断规则列表是否全部为简单操作（none, strip, lower, upper）。
-    这些操作可以用 pandas 的向量化方法直接处理，无需逐行 apply。
+    判断规则列表是否全部可以向量化处理（无需行上下文）。
+    支持更多规则：none, strip, lower, upper, chinese, number, symbols,
+                 left:n, right:n, mid:s:n, cut_left:n, cut_right:n,
+                 remove:text, remove_left4_if_digits
     返回 True 表示可以向量化，False 表示需要逐行处理。
     """
-    allowed = {"none", "strip", "lower", "upper"}
     for rule in rule_list:
-        if rule not in allowed:
+        if _requires_context_for_rule(rule):
+            return False
+        # 检查是否是已知可向量化的规则
+        if not _is_vectorizable_rule(rule):
             return False
     return True
 
 
+def _requires_context_for_rule(rule):
+    """判断单个规则是否需要行上下文（跨列引用）"""
+    if rule == "none" or rule is None:
+        return False
+    for prefix in _CONTEXT_RULE_PREFIXES:
+        if rule.startswith(prefix):
+            return True
+    return False
+
+
+def _is_vectorizable_rule(rule):
+    """判断单个规则是否可向量化"""
+    if rule in {"none", "strip", "lower", "upper", "chinese", "number",
+                "symbols", "remove_left4_if_digits"}:
+        return True
+    if rule.startswith(("left:", "right:", "mid:", "cut_left:", "cut_right:", "remove_suffix:")):
+        return True
+    if rule.startswith("remove:") and not rule.startswith("remove_left:") and not rule.startswith("remove_right:"):
+        return True
+    if rule.startswith("keep_from:"):
+        # keep_from 涉及多目标+find，暂不向量化但也不需要行上下文
+        return False
+    return False
+
+
 def _vectorized_process(series, rule_list):
     """
-    使用 pandas 向量化方法处理整列数据（Series）。
-    仅处理 none、strip、lower、upper 这些简单规则，
-    因为调用前已通过 _can_vectorize 保证规则列表只包含这些操作。
+    使用 pandas 向量化方法处理整列数据（Series），大幅提升性能。
+    支持 strip, lower, upper, chinese, number, symbols,
+         left:n, right:n, mid:s:n, cut_left:n, cut_right:n,
+         remove:text, remove_left4_if_digits 等规则。
     """
-    # 将整列转换为字符串类型（统一处理）
-    s = series.astype(str)
+    # 统一转为字符串
+    s = series.fillna("").astype(str)
+
     for rule in rule_list:
         if rule == "none":
             continue
         elif rule == "strip":
-            s = s.str.strip()  # 对整个 Series 去除首尾空格
+            s = s.str.strip()
         elif rule == "lower":
-            s = s.str.lower()  # 整体小写化
+            s = s.str.lower()
         elif rule == "upper":
-            s = s.str.upper()  # 整体大写化
-        # 注意：这里不包含 chinese、number 等复杂规则，由调用逻辑保证
+            s = s.str.upper()
+        elif rule == "chinese":
+            # 只保留中文字符
+            s = s.str.replace(r"[^一-龥]", "", regex=True)
+        elif rule == "number":
+            # 只保留数字
+            s = s.str.replace(r"[^0-9]", "", regex=True)
+        elif rule == "symbols":
+            # 删除所有非中文、非字母、非数字的符号
+            s = s.str.replace(r"[^一-龥a-zA-Z0-9]", "", regex=True)
+        elif rule.startswith("left:"):
+            n = int(rule.split(":")[1])
+            s = s.str[:n]
+        elif rule.startswith("right:"):
+            n = int(rule.split(":")[1])
+            s = s.str[-n:]
+        elif rule.startswith("mid:"):
+            parts = rule.split(":")
+            start = int(parts[1])
+            length = int(parts[2])
+            s = s.str[start:start + length]
+        elif rule.startswith("cut_left:"):
+            n = int(rule.split(":")[1])
+            s = s.str[n:]
+        elif rule.startswith("cut_right:"):
+            n = int(rule.split(":")[1])
+            s = s.str[:-n]
+        elif rule.startswith("remove:") and not rule.startswith("remove_left:") \
+                and not rule.startswith("remove_right:") and not rule.startswith("remove_suffix:"):
+            target = rule.split(":", 1)[1]
+            s = s.str.replace(target, "", regex=False)
+        elif rule.startswith("remove_suffix:"):
+            # 多后缀删除：构建正则 (suffix1|suffix2|...)$ 按长度降序匹配
+            suffix_str = rule.split(":", 1)[1]
+            suffixes = [suf for suf in suffix_str.split("|") if suf]
+            if suffixes:
+                # 按长度降序排序
+                suffixes.sort(key=lambda x: len(x), reverse=True)
+                # 转义特殊正则字符后拼接
+                escaped = [re.escape(suf) for suf in suffixes]
+                pattern = "(" + "|".join(escaped) + ")$"
+                s = s.str.replace(pattern, "", regex=True)
+        elif rule == "remove_left4_if_digits":
+            # 前4位全是数字则删除
+            mask = s.str.len() >= 4
+            is_digit_prefix = s.str[:4].str.match(r"^\d{4}$")
+            combined_mask = mask & is_digit_prefix
+            s = s.where(~combined_mask, s.str[4:])
+        # 不支持向量化的规则（如 remove_suffix, keep_from 等）不会走到这里，
+        # 因为 _can_vectorize 已过滤
+
     return s
 
 
-def _match_data(df1, df2, compare_cols, return_cols, keep_dup, has_header):
+def _match_data(df1, df2, compare_cols, return_cols, keep_dup, has_header, suffix="_来自文件2", force_suffix=False):
     """
     通用匹配函数：根据指定的对比列规则执行匹配，返回匹配结果
     参数：
@@ -413,11 +547,14 @@ def _match_data(df1, df2, compare_cols, return_cols, keep_dup, has_header):
         return_cols: 待返回列
         keep_dup: 去重策略
         has_header: 是否有表头
+        suffix: 列名冲突时追加的后缀（默认 "_来自文件2"）
     返回：
         matched_result: 匹配后的DataFrame
         key_cols: 生成的临时键列列表（用于后续删除）
     """
-    # 生成临时匹配键
+
+    # 不对原始 df1/df2 做修改，在副本上生成临时匹配键
+    df1 = df1.copy()
     key_cols = []
     for idx, (col1, rules1, col2, rules2) in enumerate(compare_cols):
         key_name = f"_key_{idx}"
@@ -455,15 +592,30 @@ def _match_data(df1, df2, compare_cols, return_cols, keep_dup, has_header):
     matched_result = df1.merge(df2_merge, on=key_cols, how="left")
 
     # 处理列名冲突（有表头模式）
+    # if has_header:
+    #     rename_map = {}
+    #     for col in return_cols:
+    #         if col in df1.columns:
+    #             rename_map[col] = f"{col}_来自文件2"
+    #     if rename_map:
+    #         matched_result.rename(columns=rename_map, inplace=True)
     if has_header:
         rename_map = {}
         for col in return_cols:
-            if col in df1.columns:
-                rename_map[col] = f"{col}_来自文件2"
+            # 如果强制添加后缀，或者列名在df1中已存在，则重命名
+            if force_suffix or (col in df1.columns):
+                rename_map[col] = f"{col}{suffix}"
         if rename_map:
             matched_result.rename(columns=rename_map, inplace=True)
 
     return matched_result, key_cols
+
+
+def _safe_pct(numerator, denominator):
+    """安全计算百分比，避免除零返回 NaN"""
+    if denominator == 0:
+        return 0.0
+    return numerator / denominator * 100
 
 
 def run_single_task(task):
@@ -493,6 +645,13 @@ def run_single_task(task):
     output_unmatched = task.get("output_unmatched", False)
     verbose = task.get("verbose", True)
 
+    # ===== 新增：读取第三次匹配参数（可选） =====
+    file3_path = task.get("file3")
+    sheet3 = task.get("sheet3")  # 可选，默认为None
+    three_compare_cols = task.get("three_compare_cols")
+    three_return_cols = task.get("three_return_cols")
+    three_keep_dup = task.get("three_keep_duplicates", keep_dup)  # 默认与主配置一致
+
     # ----- 2. 读取 Excel 文件 -----
     # 统一以字符串类型读取，避免数字/日期等自动转换导致的格式差异
     read_param = {"dtype": str, "keep_default_na": False, "na_values": []}
@@ -506,12 +665,18 @@ def run_single_task(task):
 
     # 记录文件1原始列数
     original_col_count = len(df1.columns)
+    df1['_row_id'] = df1.index  # 用于后续匹配后排序和合并
     print(f"\n{'=' * 50}")
     print(f"处理任务：{file1_path}  ↔  {file2_path}")
     print(f"文件1原有 {original_col_count} 列，返回列将从第 {original_col_count + 1} 列开始追加")
     print(f"配置对比列数：{len(compare_cols)} 列，待返回列数：{len(return_cols)} 列")
     if secondary_compare_cols:
         print(f"配置二次匹配对比列数：{len(secondary_compare_cols)} 列")
+
+    # ===== 新增：打印三次匹配信息 =====
+    if file3_path and three_compare_cols:
+        print(f"配置第三次匹配（文件3：{file3_path}，Sheet：{sheet3 or '默认'}）")
+
 
     # ----- 3. 列存在性校验 -----
     # 校验第一次匹配列
@@ -532,24 +697,47 @@ def run_single_task(task):
         if col not in df2.columns:
             raise KeyError(f"文件2中不存在待返回列: {col}（可用列：{list(df2.columns)}）")
 
+    # ===== 新增：校验第三次匹配列 + 预加载文件3（避免重复读取）=====
+    df3_preloaded = None  # 缓存文件3，避免重复读取
+    if file3_path and three_compare_cols:
+        # 读取文件3一次，用于校验列并缓存供后续匹配使用
+        read_param3 = {"dtype": str, "keep_default_na": False, "na_values": []}
+        if not has_header:
+            read_param3["header"] = None
+        if sheet3:
+            df3_preloaded = pd.read_excel(file3_path, sheet_name=sheet3, **read_param3)
+        else:
+            df3_preloaded = pd.read_excel(file3_path, **read_param3)
+        for idx, (col1, rules1, col2, rules2) in enumerate(three_compare_cols):
+            if col1 not in df1.columns:
+                raise KeyError(f"文件1中不存在第三次匹配列: {col1}（可用列：{list(df1.columns)}）")
+            if col2 not in df3_preloaded.columns:
+                raise KeyError(f"文件3中不存在列: {col2}（可用列：{list(df3_preloaded.columns)}）")
+        for col in three_return_cols:
+            if col not in df3_preloaded.columns:
+                raise KeyError(f"文件3中不存在待返回列: {col}（可用列：{list(df3_preloaded.columns)}）")
+
     # ----- 4. 第一次匹配：执行主规则匹配 -----
     print("\n【第一次匹配】")
-    # 执行第一次匹配
+    t1 = time.time()
+    # 执行第一次匹配（_match_data 内部在副本上操作，不修改原 df）
     first_match_result, first_key_cols = _match_data(
-        df1.copy(), df2, compare_cols, return_cols, keep_dup, has_header
+        df1, df2, compare_cols, return_cols, keep_dup, has_header, suffix="_来自文件2"
     )
     # 删除临时键列
     first_match_result.drop(columns=first_key_cols, inplace=True)
+    print(f"  第一次匹配耗时：{time.time() - t1:.2f} 秒")
 
     # 统计第一次匹配结果
-    first_return_col = first_match_result.columns[original_col_count]
+    # first_return_col = first_match_result.columns[original_col_count]
+    first_return_col = first_match_result.columns[original_col_count + 1]
     first_matched = first_match_result[first_return_col].notna().sum()
     total = len(first_match_result)
     first_unmatched = total - first_matched
 
     # 打印第一次匹配统计
     print(f"总行数：{total}")
-    print(f"第一次匹配成功：{first_matched} 行 ({first_matched / total * 100:.1f}%)")
+    print(f"第一次匹配成功：{first_matched} 行 ({_safe_pct(first_matched, total):.1f}%)")
     print(f"第一次未匹配：{first_unmatched} 行")
 
     # ----- 5. 分离第一次匹配成功/未匹配行 -----
@@ -581,7 +769,7 @@ def run_single_task(task):
         # 提取二次匹配成功的行
         second_matched_rows = second_match_result[second_match_result[first_return_col].notna()].copy()
 
-        print(f"第二次匹配成功：{second_matched} 行 ({second_matched / len(unmatched_original) * 100:.1f}%)")
+        print(f"第二次匹配成功：{second_matched} 行 ({_safe_pct(second_matched, len(unmatched_original)):.1f}%)")
         print(f"第二次未匹配：{second_unmatched} 行")
 
     # ----- 7. 合并两次匹配结果 -----
@@ -599,11 +787,84 @@ def run_single_task(task):
         final_result = pd.concat([final_result, first_unmatched_rows], ignore_index=True)
 
     # 恢复原始行顺序（按索引排序）
-    final_result = final_result.sort_index().reset_index(drop=True)
+    # final_result = final_result.sort_index().reset_index(drop=True)
+    # 恢复原始行顺序（按_row_id排序）
+    final_result = final_result.sort_values('_row_id').reset_index(drop=True)
+    # ----- 8. 第三次匹配（如果配置了） -----
+    third_matched = 0
+    third_to_return_mapping = {}  # {third_match中的列名: final_result中的return列名}
+    if file3_path and three_compare_cols:
+        # 提取当前仍未匹配的行（前两次都未匹配，即 first_return_col 为空）
+        unmatched_mask = final_result[first_return_col].isna()
+        if unmatched_mask.any():
+            print("\n【第三次匹配】")
+            unmatched_rows = final_result[unmatched_mask].copy()
+            print(f"待匹配行数：{len(unmatched_rows)}")
+
+            # 直接使用已预加载的文件3（避免重复读取）
+            df3 = df3_preloaded
+
+            # 执行第三次匹配（force_suffix=True 确保列名带后缀防冲突）
+            third_match_result, third_key_cols = _match_data(
+                unmatched_rows[df1.columns].copy(),
+                df3,
+                three_compare_cols,
+                three_return_cols,
+                three_keep_dup,
+                has_header,
+                suffix="_来自文件3",
+                force_suffix=True
+            )
+            third_match_result.drop(columns=third_key_cols, inplace=True)
+
+            # 统计第三次匹配结果
+            third_return_col_name = third_match_result.columns[original_col_count + 1]
+            third_matched = third_match_result[third_return_col_name].notna().sum()
+            third_unmatched = len(third_match_result) - third_matched
+            print(f"第三次匹配成功：{third_matched} 行 ({_safe_pct(third_matched, len(unmatched_rows)):.1f}%)")
+            print(f"第三次未匹配：{third_unmatched} 行")
+
+            # ===== 构建 three_return_cols → return_cols 的映射 =====
+            # 位置对应：three_return_cols[i] 的值填入 return_cols[i]
+            for i, three_col in enumerate(three_return_cols):
+                if i >= len(return_cols):
+                    print(f"⚠️ 三次匹配返回列 '{three_col}' 超出 return_cols 范围，跳过")
+                    continue
+                # 三次匹配结果中的实际列名（force_suffix=True 总是加后缀）
+                three_actual = f"{three_col}_来自文件3"
+                if three_actual not in third_match_result.columns:
+                    # 兜底：可能没加后缀（比如列名本来就不冲突）
+                    three_actual = three_col
+                # final_result 中 return_cols 的实际列名（可能加了 _来自文件2 后缀）
+                return_original = return_cols[i]
+                if return_original in final_result.columns:
+                    return_actual = return_original
+                elif f"{return_original}_来自文件2" in final_result.columns:
+                    return_actual = f"{return_original}_来自文件2"
+                else:
+                    print(f"⚠️ 找不到 return_cols 列 '{return_original}'，跳过映射")
+                    continue
+                third_to_return_mapping[three_actual] = return_actual
+
+            if third_to_return_mapping:
+                print(f"  三次匹配列映射：{dict((v, k) for k, v in third_to_return_mapping.items())}")
+
+            # 将匹配成功的行更新到 final_result 的对应 return_cols
+            if third_matched > 0:
+                third_matched_rows = third_match_result[third_match_result[third_return_col_name].notna()]
+                final_result.set_index('_row_id', inplace=True)
+                third_matched_rows.set_index('_row_id', inplace=True)
+                for three_col, return_col in third_to_return_mapping.items():
+                    # 用三次匹配的值覆盖空白的 return_col（只更新，不覆盖已有值）
+                    mask = final_result[return_col].isna()
+                    final_result.loc[mask, return_col] = third_matched_rows.loc[mask, three_col]
+                final_result.reset_index(drop=False, inplace=True)
+        else:
+            print("\n【第三次匹配】所有行已在前两次匹配成功，跳过。")
 
     # ----- 8. 总匹配统计 -----
-    total_matched = first_matched + second_matched
-    total_match_rate = total_matched / total * 100 if total > 0 else 0
+    total_matched = first_matched + second_matched + third_matched
+    total_match_rate = _safe_pct(total_matched, total)
     final_unmatched = total - total_matched
     elapsed = time.time() - start_time
 
@@ -614,28 +875,74 @@ def run_single_task(task):
 
     # ----- 9. 打印匹配样例 -----
     if verbose and total_matched > 0:
-        print("\n前3条匹配成功样例：")
-        show_cols = list(final_result.columns[:original_col_count]) + [first_return_col]
+        print("\n【前3条匹配成功样例】")
+        # 构造显示列：原始列（不含_row_id）+ 返回列
+        display_cols = [col for col in df1.columns if col != '_row_id']
+        # 添加返回列（文件2的第一个返回列，以及文件3的新增列的前两个）
+        if first_return_col:
+            display_cols.append(first_return_col)
+        # 添加其他 return_cols（返回列的实际名称）
+        for col in return_cols:
+            actual = col
+            if actual not in display_cols and actual in final_result.columns:
+                display_cols.append(actual)
+            # 也检查带后缀的版本
+            for suffix in ["_来自文件2", "_来自文件3"]:
+                candidate = f"{col}{suffix}"
+                if candidate not in display_cols and candidate in final_result.columns:
+                    display_cols.append(candidate)
         try:
-            # 取前3条匹配成功的行展示
-            sample_rows = final_result[final_result[first_return_col].notna()].head(3)
-            print(sample_rows[show_cols].to_string(index=False))
+            # 取匹配成功的前3行
+            success_mask = final_result[first_return_col].notna()
+            sample_rows = final_result[success_mask].head(3).copy()
+            # 将 NaN 替换为 "未匹配" 提升可读性
+            for col in display_cols:
+                if col in sample_rows.columns:
+                    sample_rows[col] = sample_rows[col].fillna("未匹配")
+            print(sample_rows[display_cols].to_string(index=False))
         except Exception:
             print("（样例展示失败）")
 
-    # ----- 10. 保存最终结果文件 -----
-    final_result.to_excel(output_path, index=False, header=has_header)
-    print(f"\n最终结果已保存到：{output_path}")
+    # 打印未匹配样例（便于排查匹配失败原因）
+    if verbose and final_unmatched > 0:
+        print(f"\n【前3条未匹配样例】（共 {final_unmatched} 行未匹配）")
+        display_cols = [col for col in df1.columns if col != '_row_id']
+        try:
+            unmatched_sample = final_result[final_result[first_return_col].isna()].head(3).copy()
+            for col in display_cols:
+                if col in unmatched_sample.columns:
+                    unmatched_sample[col] = unmatched_sample[col].fillna("(空)")
+            print(unmatched_sample[display_cols].to_string(index=False))
+        except Exception:
+            print("（样例展示失败）")
 
-    # ----- 11. 输出最终未匹配行（两次都失败的）-----
-    # if output_unmatched:
-    #     final_unmatched_rows = final_result[final_result[first_return_col].isna()]
-    #     if not final_unmatched_rows.empty:
-    #         unmatched_path = output_path.replace(".xlsx", "_未匹配.xlsx")
-    #         final_unmatched_rows.to_excel(unmatched_path, index=False, header=has_header)
-    #         print(f"最终未匹配行已保存到：{unmatched_path}")
-    #     else:
-    #         print("所有行均已匹配，无需生成未匹配文件。")
+    # ----- 10. 保存最终结果文件（NaN替换为"未匹配"便于阅读）-----
+    # 将返回列中的 NaN 替换为 "未匹配"（三次匹配结果都在 return_cols 中）
+    output_result = final_result.copy()
+    for col in return_cols:
+        # 处理可能被重命名的返回列（原始名和加后缀的版本）
+        for actual_col in output_result.columns:
+            if actual_col == col or actual_col.startswith(f"{col}_来自"):
+                output_result[actual_col] = output_result[actual_col].fillna("未匹配")
+
+    output_result.drop(columns=['_row_id'], inplace=True)
+    output_result.to_excel(output_path, index=False, header=has_header)
+    print(f"\n最终结果已保存到：{output_path}（未匹配行显示为'未匹配'）")
+
+    # ----- 11. 单独输出未匹配行（如果配置了）-----
+    if output_unmatched and final_unmatched > 0:
+        # 三次匹配都失败的行：first_return_col 为空
+        final_unmatched_mask = final_result[first_return_col].isna()
+        final_unmatched_rows = final_result[final_unmatched_mask].copy()
+        if not final_unmatched_rows.empty:
+            final_unmatched_rows.drop(columns=['_row_id'], inplace=True)
+            # NaN替换为"(空)"
+            final_unmatched_rows = final_unmatched_rows.fillna("(空)")
+            unmatched_path = output_path.replace(".xlsx", "_未匹配.xlsx")
+            final_unmatched_rows.to_excel(unmatched_path, index=False, header=has_header)
+            print(f"未匹配行已单独保存到：{unmatched_path}")
+    elif output_unmatched and final_unmatched == 0:
+        print("所有行均已匹配，无需生成未匹配文件。")
 
 
 def main():
