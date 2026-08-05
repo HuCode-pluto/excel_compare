@@ -60,7 +60,7 @@ TASKS = [
         # 文件2匹配键重复时保留第一条
         "keep_duplicates": "first",
         # 单独输出最终未匹配行（两次匹配都失败的）
-        "output_unmatched": True,
+        "output_unmatched": False,
         # 打印匹配样例
         "verbose": True,
 
@@ -99,7 +99,7 @@ TASKS = [
         # 文件2匹配键重复时保留第一条
         "keep_duplicates": "first",
         # 单独输出最终未匹配行（两次匹配都失败的）
-        "output_unmatched": True,
+        "output_unmatched": False,
         # 打印匹配样例
         "verbose": True,
 
@@ -140,7 +140,7 @@ TASKS = [
         # 文件2匹配键重复时保留第一条
         "keep_duplicates": "first",
         # 单独输出最终未匹配行（两次匹配都失败的）
-        "output_unmatched": True,
+        "output_unmatched": False,
         # 打印匹配样例
         "verbose": True,
 
@@ -181,7 +181,7 @@ TASKS = [
         # 文件2匹配键重复时保留第一条
         "keep_duplicates": "first",
         # 单独输出最终未匹配行（两次匹配都失败的）
-        "output_unmatched": True,
+        "output_unmatched": False,
         # 打印匹配样例
         "verbose": True,
 
@@ -222,7 +222,7 @@ TASKS = [
         # 文件2匹配键重复时保留第一条
         "keep_duplicates": "first",
         # 单独输出最终未匹配行（两次匹配都失败的）
-        "output_unmatched": True,
+        "output_unmatched": False,
         # 打印匹配样例
         "verbose": True,
 
