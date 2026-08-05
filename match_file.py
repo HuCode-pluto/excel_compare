@@ -105,9 +105,9 @@ TASKS = [
 
         "three_compare_cols": [
             ('刀闸名称', ["symbols"], '地调设备名称', ["symbols"]),
-            ('站房名称', ["symbols", "chinese"], '站房名称', ["symbols", "chinese"]),
+            ('站房名称', ["symbols", "chinese"], '站房名称1', ["symbols", "chinese"]),
         ],
-        "three_return_cols": ["调控云设备ID", "调控云设备名称","站房名称"],
+        "three_return_cols": ["调控云设备ID", "调控云设备名称","站房名称1"],
         "three_keep_duplicates": "first"   # 可选，默认与keep_duplicates一致
 
     },
@@ -148,7 +148,7 @@ TASKS = [
             ('开关名称', ["symbols"], '地调设备名称', ["symbols"]),
             ('站房名称', ["symbols", "chinese"], '站房名称橙色站房未匹配', ["symbols", "chinese"]),
         ],
-        "three_return_cols": ["调控云设备ID", "调控云设备名称", "站房名称橙色站房未匹配"],
+        "three_return_cols": ["调控云ID", "调控云设备名称", "站房名称橙色站房未匹配"],
         "three_keep_duplicates": "first"  # 可选，默认与keep_duplicates一致
 
     },
