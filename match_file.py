@@ -54,7 +54,7 @@ TASKS = [
         "has_header": True,
         # 第一次对比列配置：每个元组为(文件1列, 文件1预处理规则列表, 文件2列, 文件2预处理规则列表)
         "compare_cols": [
-            ('站房NAME', ["symbols"], '站房名称',["symbols"]),
+            ('站房NAME', ["symbols","remove_left4_if_digits"], '站房名称',["symbols","remove_left4_if_digits"]),
         ],
         # 待返回列：匹配成功后从文件2提取这些列追加到文件1末尾
         "return_cols": ["ID", "站房名称", ],
@@ -66,7 +66,7 @@ TASKS = [
         "verbose": True,
 
         "three_compare_cols": [
-            ('站房NAME', ["symbols"], '地调站房名称', ["symbols"]),
+            ('站房NAME', ["symbols","remove_left4_if_digits"], '地调站房名称', ["symbols","remove_left4_if_digits"]),
         ],
         "three_return_cols": ["调控云ID", "调控云名称"],
         "three_keep_duplicates": "first"   # 可选，默认与keep_duplicates一致
