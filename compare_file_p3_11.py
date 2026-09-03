@@ -527,16 +527,16 @@ TASKS = [
         "file1": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\zhkgb.xls",
         "file2": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\zhkgb_dm.xls",
         "col_map": {
-            "开关名称": "NAME",
+            "组合开关名称": "NAME",
             "所属开关站": "combined_name",
             "所属馈线": "feeder_name",
         },
         "transform_funcs": {
-            "开关名称": full_clean,
+            "组合开关名称": full_clean,
             "所属开关站": full_clean,
             "所属馈线": full_clean,
         },
-        "key_col": "开关名称",
+        "key_col": "组合开关名称",
         "ignore_only_row": False   # 忽略独有行
     },
     # 任务5：刀闸实时库商用库对比
@@ -733,7 +733,7 @@ TASKS = [
             # left_trim_by_ref_len(target_col="开关名称", ref_col="厂站名称"),
             # 可继续添加多个规则，格式同上
             # 示例：target_col 从右侧保留 ref_col 长度的内容
-            right_keep_by_ref_len(target_col="开关名称", ref_col="厂站名称"),
+            right_keep_by_ref_len(target_col="开关名称", ref_col="开关名称"),
         ]
     },
     # 任务12：配网通道表实时库商用库对比
