@@ -476,8 +476,8 @@ TASKS = [
     # 任务2：开关站实时库商用库对比
     {
         "name": "开关站实时库商用库对比",
-        "file1": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\kg_zb.xls",
-        "file2": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\kg_zb_dm.xls",
+        "file1": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\kgzb.xls",
+        "file2": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\kgzb_dm.xls",
         "col_map": {
             "开关站ID号": "ID",
             "开关站名称": "NAME",
@@ -527,16 +527,16 @@ TASKS = [
         "file1": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\zhkgb.xls",
         "file2": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\zhkgb_dm.xls",
         "col_map": {
-            "组合开关名称": "NAME",
+            "开关名称": "NAME",
             "所属开关站": "combined_name",
             "所属馈线": "feeder_name",
         },
         "transform_funcs": {
-            "组合开关名称": full_clean,
+            "开关名称": full_clean,
             "所属开关站": full_clean,
             "所属馈线": full_clean,
         },
-        "key_col": "组合开关名称",
+        "key_col": "开关名称",
         "ignore_only_row": False   # 忽略独有行
     },
     # 任务5：刀闸实时库商用库对比
@@ -682,15 +682,15 @@ TASKS = [
             "中文名称": "NAME",
             "所属开关站": "combined_name",
             "所属馈线": "feeder_name",
-            "预留整型值1": "DEFAULT_I1",
-            "预留长整型2": "DEFAULT_L1",
+            # "预留整型值1": "DEFAULT_I1",
+            # "预留长整型2": "DEFAULT_L1",
         },
         "transform_funcs": {
             "中文名称": full_clean,
             "所属开关站": full_clean,
             "所属馈线": full_clean,
-            "预留整型值1": convert_station_type,
-            "预留长整型2": lambda x: trim_str_length(x, 19),
+            # "预留整型值1": convert_station_type,
+            # "预留长整型2": lambda x: trim_str_length(x, 19),
         },
         "key_col": ["中文名称","所属开关站"],
         "ignore_only_row": False   # 忽略独有行
@@ -733,7 +733,7 @@ TASKS = [
             # left_trim_by_ref_len(target_col="开关名称", ref_col="厂站名称"),
             # 可继续添加多个规则，格式同上
             # 示例：target_col 从右侧保留 ref_col 长度的内容
-            right_keep_by_ref_len(target_col="开关名称", ref_col="开关名称"),
+            right_keep_by_ref_len(target_col="开关名称", ref_col="厂站名称"),
         ]
     },
     # 任务12：配网通道表实时库商用库对比
