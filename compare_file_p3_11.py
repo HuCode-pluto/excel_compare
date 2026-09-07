@@ -473,7 +473,51 @@ TASKS = [
         "key_col": "馈线ID号",
         "ignore_only_row": False   # 忽略独有行
     },
-    # 任务2：开关站实时库商用库对比
+
+    {
+            "name": "配网馈线表实时库一区和三区对比",
+            "file1": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\kxb.xls",
+            "file2": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\kxb_3.xls",
+            "col_map": {
+                # "所属厂站": "st_name",
+                "馈线ID号": "馈线ID号",
+                "馈线名称": "馈线名称",
+                # "图形名": "GRAPH_NAME",
+            },
+            "transform_funcs": {
+                "馈线ID号": full_clean,
+                "馈线名称": full_clean,
+                # "所属厂站": full_clean,
+            },
+            "key_col": "馈线ID号",
+            "ignore_only_row": False   # 忽略独有行
+    },
+    {
+        "name": "配网馈线表达梦库一区和三区对比",
+        "file1": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\kxb_dm.xls",
+        "file2": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\kxb_dm3.xls",
+        "col_map": {
+            # "所属厂站": "st_name",
+            "ID": "ID",
+            "NAME": "NAME",
+            # "图形名": "GRAPH_NAME",
+        },
+        "transform_funcs": {
+            "ID": full_clean,
+            "NAME": full_clean,
+            # "所属厂站": full_clean,
+        },
+        "key_col": "ID",
+        "ignore_only_row": False  # 忽略独有行
+    },
+    
+
+
+
+
+
+
+    #开关站表
     {
         "name": "开关站实时库商用库对比",
         "file1": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\kgzb.xls",
@@ -491,8 +535,49 @@ TASKS = [
             "开关站类型": convert_station_type,
         },
         "key_col": "开关站ID号",
+        "ignore_only_row": False  # 忽略独有行
+    },
+    {
+        "name": "开关站实时库一区和三区对比",
+        "file1": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\kgzb.xls",
+        "file2": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\kgzb_3.xls",
+        "col_map": {
+            "开关站ID号": "开关站ID号",
+            "开关站名称": "开关站名称",
+            "所属馈线": "所属馈线",
+            "开关站类型": "开关站类型",
+        },
+        "transform_funcs": {
+            "开关站ID号": full_clean,
+            "开关站名称": full_clean,
+            "所属馈线": full_clean,
+            "开关站类型": full_clean,
+        },
+        "key_col": "开关站ID号",
+        "ignore_only_row": False  # 忽略独有行
+    },
+    {
+        "name": "开关站达梦库一区和三区对比",
+        "file1": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\kgzb_dm.xls",
+        "file2": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\kgzb_dm3.xls",
+        "col_map": {
+            "ID": "ID",
+            "NAME": "NAME",
+            "feeder_name": "feeder_name",
+            "COMBINED_TYPE": "COMBINED_TYPE",
+        },
+        "transform_funcs": {
+            "ID": full_clean,
+            "NAME": full_clean,
+            "feeder_name": full_clean,
+            "COMBINED_TYPE": full_clean,
+        },
+        "key_col": "ID",
         "ignore_only_row": False   # 忽略独有行
     },
+
+
+
 
     # 任务3：开关实时库商用库对比
     {
@@ -520,6 +605,59 @@ TASKS = [
         "key_col": "开关ID号",
         "ignore_only_row": False   # 忽略独有行
     },
+    {
+        "name": "开关实时库一三区对比",
+        "file1": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\kgb.xls",
+        "file2": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\kgb_3.xls",
+        "col_map": {
+            "开关ID号": "开关ID号",
+            "开关名称": "开关名称",
+            "所属开关站": "所属开关站",
+            "所属馈线": "所属馈线",
+            "所属组合设备": "所属组合设备",
+            # "开关类型": "开关类型",
+            "开关联络类型": "开关联络类型",
+        },
+        "transform_funcs": {
+            "开关ID号": full_clean,
+            "开关名称": full_clean,
+            "所属开关站": full_clean,
+            "所属馈线": full_clean,
+            "所属组合设备": full_clean,
+            # "开关类型": convert_station_type,
+            "开关联络类型": full_clean,
+        },
+        "key_col": "开关ID号",
+        "ignore_only_row": False  # 忽略独有行
+    },
+    {
+        "name": "开关dm一三区对比",
+        "file1": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\kgb_dm.xls",
+        "file2": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\kgb_dm3.xls",
+        "col_map": {
+            "ID": "ID",
+            "NAME": "NAME",
+            "combined_name": "combined_name",
+            "feeder_name": "feeder_name",
+            "composite_switch_name": "composite_switch_name",
+            # "开关类型": "BRK_TYPE",
+            "BRK_CONNECT_TYPE": "BRK_CONNECT_TYPE",
+        },
+        "transform_funcs": {
+            "ID": full_clean,
+            "NAME": full_clean,
+            "combined_name": full_clean,
+            "feeder_name": full_clean,
+            "composite_switch_name": full_clean,
+            # "开关类型": convert_station_type,
+            "BRK_CONNECT_TYPE": full_clean,
+        },
+        "key_col": "ID",
+        "ignore_only_row": False  # 忽略独有行
+    },
+
+
+
 
     # 任务4：组合开关实时库商用库对比
     {
@@ -539,6 +677,46 @@ TASKS = [
         "key_col": "组合开关名称",
         "ignore_only_row": False   # 忽略独有行
     },
+    {
+        "name": "组合开关实时库一三区对比",
+        "file1": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\zhkgb.xls",
+        "file2": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\zhkgb_3.xls",
+        "col_map": {
+            "组合开关名称": "组合开关名称",
+            "所属开关站": "所属开关站",
+            "所属馈线": "所属馈线",
+        },
+        "transform_funcs": {
+            "组合开关名称": full_clean,
+            "所属开关站": full_clean,
+            "所属馈线": full_clean,
+        },
+        "key_col": "组合开关名称",
+        "ignore_only_row": False  # 忽略独有行
+    },
+    {
+        "name": "组合开关一三区商用库对比",
+        "file1": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\zhkgb_dm.xls",
+        "file2": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\zhkgb_dm3.xls",
+        "col_map": {
+            "NAME": "NAME",
+            "combined_name": "combined_name",
+            "feeder_name": "feeder_name",
+        },
+        "transform_funcs": {
+            "NAME": full_clean,
+            "combined_name": full_clean,
+            "feeder_name": full_clean,
+        },
+        "key_col": "NAME",
+        "ignore_only_row": False  # 忽略独有行
+    },
+
+
+
+
+
+
     # 任务5：刀闸实时库商用库对比
     {
         "name": "刀闸实时库商用库对比",
@@ -563,6 +741,56 @@ TASKS = [
         "key_col": "刀闸ID号",
         "ignore_only_row": False   # 忽略独有行
     },
+    {
+        "name": "刀闸实时库一三区对比",
+        "file1": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\dzb.xls",
+        "file2": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\dzb_3.xls",
+        "col_map": {
+            "刀闸ID号": "刀闸ID号",
+            "刀闸名称": "刀闸名称",
+            "所属开关站": "所属开关站",
+            "所属馈线": "所属馈线",
+            "所属组合设备": "所属组合设备",
+            "刀闸类型": "刀闸类型",
+        },
+        "transform_funcs": {
+            "刀闸ID号": full_clean,
+            "刀闸名称": full_clean,
+            "所属开关站": full_clean,
+            "所属馈线": full_clean,
+            "所属组合设备": full_clean,
+            "刀闸类型": full_clean,
+        },
+        "key_col": "刀闸ID号",
+        "ignore_only_row": False  # 忽略独有行
+    },
+    {
+        "name": "刀闸一三区商用库对比",
+        "file1": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\dzb_dm.xls",
+        "file2": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\dzb_dm3.xls",
+        "col_map": {
+            "ID": "ID",
+            "NAME": "NAME",
+            "combined_name": "combined_name",
+            "feeder_name": "feeder_name",
+            "composite_switch_name": "composite_switch_name",
+            "DISCR_TYPE": "DISCR_TYPE",
+        },
+        "transform_funcs": {
+            "ID": full_clean,
+            "NAME": full_clean,
+            "combined_name": full_clean,
+            "feeder_name": full_clean,
+            "composite_switch_name": full_clean,
+            "DISCR_TYPE": full_clean,
+        },
+        "key_col": "ID",
+        "ignore_only_row": False  # 忽略独有行
+    },
+
+
+
+
     # 任务6：接地刀闸实时库商用库对比
     {
         "name": "接地刀闸实时库商用库对比",
@@ -587,6 +815,58 @@ TASKS = [
         "key_col": "接地刀闸ID号",
         "ignore_only_row": False   # 忽略独有行
     },
+    {
+        "name": "接地刀闸实时库一三区对比",
+        "file1": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\jddzb.xls",
+        "file2": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\jddzb_3.xls",
+        "col_map": {
+            "接地刀闸ID号": "接地刀闸ID号",
+            "接地刀闸名称": "接地刀闸名称",
+            "所属开关站": "所属开关站",
+            "所属馈线": "所属馈线",
+            "所属组合设备": "所属组合设备",
+            # "刀闸类型": "DISCR_TYPE",
+        },
+        "transform_funcs": {
+            "接地刀闸ID号": full_clean,
+            "接地刀闸名称": full_clean,
+            "所属开关站": full_clean,
+            "所属馈线": full_clean,
+            "所属组合设备": full_clean,
+            # "刀闸类型": convert_station_type,
+        },
+        "key_col": "接地刀闸ID号",
+        "ignore_only_row": False  # 忽略独有行
+    },
+    {
+        "name": "接地刀闸一三区商用库对比",
+        "file1": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\jddzb_dm.xls",
+        "file2": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\jddzb_dm3.xls",
+        "col_map": {
+            "ID": "ID",
+            "NAME": "NAME",
+            "combined_name": "combined_name",
+            "feeder_name": "feeder_name",
+            "composite_switch_name": "composite_switch_name",
+            # "刀闸类型": "DISCR_TYPE",
+        },
+        "transform_funcs": {
+            "ID": full_clean,
+            "NAME": full_clean,
+            "combined_name": full_clean,
+            "feeder_name": full_clean,
+            "composite_switch_name": full_clean,
+            # "刀闸类型": convert_station_type,
+        },
+        "key_col": "ID",
+        "ignore_only_row": False  # 忽略独有行
+    },
+
+
+
+
+
+
     # 任务7：配网母线实时库商用库对比
     {
         "name": "母线表实时库商用库对比",
@@ -611,6 +891,58 @@ TASKS = [
         "key_col": "母线ID号",
         "ignore_only_row": False   # 忽略独有行
     },
+    {
+        "name": "母线表实时库一三区对比",
+        "file1": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\mxb.xls",
+        "file2": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\mxb_3.xls",
+        "col_map": {
+            "母线ID号": "母线ID号",
+            "母线名称": "母线名称",
+            "所属开关站": "所属开关站",
+            "所属馈线": "所属馈线",
+             "所属组合设备": "所属组合设备",
+            # "刀闸类型": "DISCR_TYPE",
+        },
+        "transform_funcs": {
+            "母线ID号": full_clean,
+            "母线名称": full_clean,
+            "所属开关站": full_clean,
+            "所属馈线": full_clean,
+             #"所属组合设备": full_clean,
+            # "刀闸类型": convert_station_type,
+        },
+        "key_col": "母线ID号",
+        "ignore_only_row": False  # 忽略独有行
+    },
+    {
+        "name": "母线表一三区商用库对比",
+        "file1": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\mxb_dm.xls",
+        "file2": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\mxb_dm3.xls",
+        "col_map": {
+            "ID": "ID",
+            "NAME": "NAME",
+            "combined_name": "combined_name",
+            "feeder_name": "feeder_name",
+            # "所属组合设备": "composite_switch_name",
+            # "刀闸类型": "DISCR_TYPE",
+        },
+        "transform_funcs": {
+            "ID": lambda x: trim_str_length(x, 19),
+            "NAME": full_clean,
+            "combined_name": full_clean,
+            "feeder_name": full_clean,
+            # "所属组合设备": full_clean,
+            # "刀闸类型": convert_station_type,
+        },
+        "key_col": "ID",
+        "ignore_only_row": False  # 忽略独有行
+    },
+
+
+
+
+
+
     # 任务8：配网终端信息表实时库商用库对比
     {
         "name": "终端信息表实时库商用库对比",
@@ -643,6 +975,75 @@ TASKS = [
         "key_col": "终端ID",
         "ignore_only_row": False   # 忽略独有行
     },
+    {
+        "name": "终端信息表实时库一三区对比",
+        "file1": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\zdxxb.xls",
+        "file2": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\zdxxb_3.xls",
+        "col_map": {
+            "终端ID": "终端ID",
+            "终端名称": "终端名称",
+            "所属开关站": "所属开关站",
+            "所属馈线": "所属馈线",
+            "终端编号": "终端编号",
+            "是否通讯状态统计": "是否通讯状态统计",
+            "终端类别": "终端类别",
+            # "运行定值区号": "CUR_FIXED_AREA",
+            # "所属组合设备": "composite_switch_name",
+            # "刀闸类型": "DISCR_TYPE",
+        },
+        "transform_funcs": {
+            "终端ID": full_clean,
+            "终端名称": full_clean,
+            "所属开关站": full_clean,
+            "终端编号": full_clean,
+            "是否通讯状态统计": full_clean,
+            "终端类别": full_clean,
+            # "运行定值区号": full_clean,
+            "所属馈线": full_clean,
+            # "所属组合设备": full_clean,
+            # "刀闸类型": convert_station_type,
+        },
+        "key_col": "终端ID",
+        "ignore_only_row": False  # 忽略独有行
+    },
+    {
+        "name": "终端信息表一三区商用库对比",
+        "file1": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\zdxxb_dm.xls",
+        "file2": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\zdxxb_dm3.xls",
+        "col_map": {
+            "ID": "ID",
+            "NAME": "NAME",
+            "combined_name": "combined_name",
+            "feeder_name": "feeder_name",
+            "CODE": "CODE",
+            "IF_STAT_STATIC": "IF_STAT_STATIC",
+            "TERM_TYPE": "TERM_TYPE",
+            # "运行定值区号": "CUR_FIXED_AREA",
+            # "所属组合设备": "composite_switch_name",
+            # "刀闸类型": "DISCR_TYPE",
+        },
+        "transform_funcs": {
+            "ID": full_clean,
+            "NAME": full_clean,
+            "combined_name": full_clean,
+            "CODE": full_clean,
+            "IF_STAT_STATIC": yn_station_type,
+            "TERM_TYPE": convert_station_type,
+            # "运行定值区号": full_clean,
+            "feeder_name": full_clean,
+            # "所属组合设备": full_clean,
+            # "刀闸类型": convert_station_type,
+        },
+        "key_col": "ID",
+        "ignore_only_row": False  # 忽略独有行
+    },
+
+
+
+
+
+
+
     # 任务9：保护节点表实时库商用库对比
     {
         "name": "保护节点表实时库商用库对比",
@@ -673,6 +1074,72 @@ TASKS = [
         "key_col": "标识",
         "ignore_only_row": False   # 忽略独有行
     },
+    {
+        "name": "保护节点表实时库一三区对比",
+        "file1": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\bhjdb.xls",
+        "file2": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\bhjdb_3.xls",
+        "col_map": {
+            "标识": "标识",
+            "中文名称": "中文名称",
+            "所属开关站": "所属开关站",
+            "所属馈线": "所属馈线",
+            "电压类型ID": "电压类型ID",
+            "类型": "类型",
+            "开关数目": "开关数目",
+            "相应开关1": "相应开关1",
+            "相应开关2": "相应开关2",
+        },
+        "transform_funcs": {
+            "标识": full_clean,
+            "中文名称": full_clean,
+            "所属开关站": full_clean,
+            "所属馈线": full_clean,
+            "电压类型ID": full_clean,
+            "类型": full_clean,
+            "开关数目": full_clean,
+            "相应开关1": full_clean,
+            "相应开关2": full_clean,
+        },
+        "key_col": "标识",
+        "ignore_only_row": False  # 忽略独有行
+    },
+    {
+        "name": "保护节点表一三区商用库对比",
+        "file1": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\bhjdb_dm.xls",
+        "file2": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\bhjdb_dm3.xls",
+        "col_map": {
+            "ID": "ID",
+            "NAME": "NAME",
+            "combined_name": "combined_name",
+            "feeder_name": "feeder_name",
+            "BV_ID": "BV_ID",
+            "PNT_TYPE": "PNT_TYPE",
+            "BRK_NUM": "BRK_NUM",
+            "RELY_BRK1": "RELY_BRK1",
+            "RELY_BRK2": "RELY_BRK2",
+        },
+        "transform_funcs": {
+            "ID": full_clean,
+            "NAME": full_clean,
+            "combined_name": full_clean,
+            "feeder_name": full_clean,
+            "BV_ID": full_clean,
+            "PNT_TYPE": full_clean,
+            "BRK_NUM": full_clean,
+            "RELY_BRK1": full_clean,
+            "RELY_BRK2": full_clean,
+        },
+        "key_col": "ID",
+        "ignore_only_row": False  # 忽略独有行
+    },
+
+
+
+
+
+
+
+
     # 任务10：测点遥测表实时库商用库对比
     {
         "name": "测点遥测表表实时库商用库对比",
@@ -695,6 +1162,56 @@ TASKS = [
         "key_col": ["中文名称","所属开关站"],
         "ignore_only_row": False   # 忽略独有行
     },
+    {
+        "name": "测点遥测表表实时库一三区对比",
+        "file1": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\cdycb.xls",
+        "file2": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\cdycb_3.xls",
+        "col_map": {
+            "中文名称": "中文名称",
+            "所属开关站": "所属开关站",
+            "所属馈线": "所属馈线",
+            # "预留整型值1": "DEFAULT_I1",
+            # "预留长整型2": "DEFAULT_L1",
+        },
+        "transform_funcs": {
+            "中文名称": full_clean,
+            "所属开关站": full_clean,
+            "所属馈线": full_clean,
+            # "预留整型值1": convert_station_type,
+            # "预留长整型2": lambda x: trim_str_length(x, 19),
+        },
+        "key_col": ["中文名称", "所属开关站"],
+        "ignore_only_row": False  # 忽略独有行
+    },
+    {
+        "name": "测点遥测表表一三区商用库对比",
+        "file1": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\cdycb_dm.xls",
+        "file2": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\cdycb_dm3.xls",
+        "col_map": {
+            "NAME": "NAME",
+            "combined_name": "combined_name",
+            "feeder_name": "feeder_name",
+            # "预留整型值1": "DEFAULT_I1",
+            # "预留长整型2": "DEFAULT_L1",
+        },
+        "transform_funcs": {
+            "NAME": full_clean,
+            "combined_name": full_clean,
+            "feeder_name": full_clean,
+            # "预留整型值1": convert_station_type,
+            # "预留长整型2": lambda x: trim_str_length(x, 19),
+        },
+        "key_col": ["NAME", "combined_name"],
+        "ignore_only_row": False  # 忽略独有行
+    },
+
+
+
+
+
+
+
+
     # 任务11：断路器DA控制表实时库商用库对比
     {
         "name": "断路器DA控制表实时库商用库对比",
@@ -736,6 +1253,68 @@ TASKS = [
             right_keep_by_ref_len(target_col="开关名称", ref_col="开关名称"),
         ]
     },
+    {
+        "name": "断路器DA控制表实时库一三区对比",
+        "file1": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\dlqdakzb.xls",
+        "file2": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\dlqdakzb_3.xls",
+        "col_map": {
+            "标识": "标识",
+            "厂站名称": "厂站名称",
+            "开关名称": "开关名称",
+            "关连馈线": "关连馈线",
+            "运行状态": "运行状态",
+            "执行模式": "执行模式",
+            "图形名称": "图形名称",
+            "故障启动条件": "故障启动条件",
+        },
+        "transform_funcs": {
+            "标识": full_clean,
+            "厂站名称": full_clean,
+            "开关名称": full_clean,
+            "关连馈线": full_clean,
+            "运行状态": full_clean,
+            "执行模式": full_clean,
+            "故障启动条件": full_clean,
+            "图形名称": full_clean,
+        },
+        "key_col": "标识",
+        "ignore_only_row": False  # 忽略独有行
+    },
+    {
+        "name": "断路器DA控制表一三区商用库对比",
+        "file1": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\dlqdakzb_dm.xls",
+        "file2": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\dlqdakzb_dm3.xls",
+        "col_map": {
+            "ID": "ID",
+            "st_name": "st_name",
+            "cb_name": "cb_name",
+            "feeder_name": "feeder_name",
+            "SIMU_MODE": "SIMU_MODE",
+            "CTRL_MODE": "CTRL_MODE",
+            "GRAPH_NAME": "GRAPH_NAME",
+            "FAULT_START": "FAULT_START",
+        },
+        "transform_funcs": {
+            "ID": lambda x: trim_str_length(x, 19),
+            "st_name": full_clean,
+            "cb_name": full_clean,
+            "feeder_name": full_clean,
+            "SIMU_MODE": convert_station_type,
+            "CTRL_MODE": convert_station_type,
+            "FAULT_START": convert_station_type,
+            "GRAPH_NAME": full_clean,
+        },
+        "key_col": "ID",
+        "ignore_only_row": False  # 忽略独有行
+    },
+
+
+
+
+
+
+
+
     # 任务12：配网通道表实时库商用库对比
     {
         "name": "配网通道表实时库商用库对比",
@@ -760,6 +1339,54 @@ TASKS = [
         "key_col": "通道编号",
         "ignore_only_row": False   # 忽略独有行
     },
+    {
+        "name": "配网通道表实时库一三区对比",
+        "file1": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\tdb.xls",
+        "file2": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\tdb_3.xls",
+        "col_map": {
+            "通道编号": "通道编号",
+            "通道名称": "通道名称",
+            "通讯终端ID": "通讯终端ID",
+            "网络描述一": "网络描述一",
+            "通信规约类型": "通信规约类型",
+            # "所属系统": "PARA_8",
+        },
+        "transform_funcs": {
+            "通道编号": full_clean,
+            "通道名称": full_clean,
+            "通讯终端ID": full_clean,
+            "网络描述一": full_clean,
+            "通信规约类型": full_clean,
+            # "所属系统": convert_station_type,
+        },
+        "key_col": "通道编号",
+        "ignore_only_row": False  # 忽略独有行
+    },
+    {
+        "name": "配网通道表一三区商用库对比",
+        "file1": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\tdb_dm.xls",
+        "file2": "C:\\Users\\13303\\Desktop\\excel_compare\\data\\tdb_dm3.xls",
+        "col_map": {
+            "CHAN_NO": "CHAN_NO",
+            "CHAN_NAME": "CHAN_NAME",
+            "com_terminal_name": "com_terminal_name",
+            "NET_DESCRIPTION1": "NET_DESCRIPTION1",
+            "PROTO_TYPE": "PROTO_TYPE",
+            # "所属系统": "PARA_8",
+        },
+        "transform_funcs": {
+            "CHAN_NO": full_clean,
+            "CHAN_NAME": full_clean,
+            "com_terminal_name": full_clean,
+            "NET_DESCRIPTION1": full_clean,
+            "PROTO_TYPE": convert_station_type,
+            # "所属系统": convert_station_type,
+        },
+        "key_col": "CHAN_NO",
+        "ignore_only_row": False  # 忽略独有行
+    },
+    
+
 ]
 
 # ========== 批量任务配置区 ==========
@@ -790,7 +1417,8 @@ def load_excel(file_path):
             enc_list = ["utf-8", "gb18030", "gbk"]
             for enc in enc_list:
                 try:
-                    df = pd.read_csv(file_path, encoding=enc, sep="\t")
+                    #df = pd.read_csv(file_path, encoding=enc, sep="\t")
+                    df = pd.read_csv(file_path, encoding=enc, sep="\t", on_bad_lines="skip")
                     df.columns = [str(c).strip() for c in df.columns]
                     print(f"【调试】使用编码 {enc} 读取成功")
                     print(f"【调试】{os.path.basename(file_path)} 实际表头：{list(df.columns)}")
